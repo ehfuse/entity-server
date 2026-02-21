@@ -1,0 +1,60 @@
+{
+    "name": "account",
+    "description": "JWT 로그인/인증 계정 예제",
+    "index": {
+        "user_seq": {
+            "comment": "사용자번호"
+        },
+        "email": {
+            "comment": "이메일",
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "status": {
+            "comment": "상태",
+            "type": ["active", "inactive", "blocked"],
+            "default": "active"
+        },
+        "rbac_role": {
+            "comment": "RBAC 역할 (JWT 인증/인가에 사용)",
+            "type": ["admin", "editor", "viewer", "auditor", "user"],
+            "default": "user"
+        }
+    },
+    "fk": {
+        "user_seq": "user.seq"
+    },
+    "reset_defaults": [
+        {
+            "email": "admin@example.com",
+            "passwd": "admin12345",
+            "rbac_role": "admin",
+            "status": "active"
+        }
+    ],
+    "hooks": {
+        "before_insert": [
+            {
+                "type": "submit",
+                "entity": "user",
+                "match": {
+                    "email": "${new.email}"
+                },
+                "data": {
+                    "email": "${new.email}",
+                    "status": "active"
+                },
+                "assign_seq_to": "user_seq"
+            }
+        ],
+        "after_insert": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${new.seq}", "INSERT", "${new.email}"],
+                "async": false
+            }
+        ]
+    }
+}

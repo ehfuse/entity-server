@@ -1,0 +1,65 @@
+{
+    "name": "system_audit_log",
+    "description": "시스템 감사 로그. 서버 레벨에서 자동 기록되며 API를 통한 직접 수정은 허용되지 않습니다.",
+    "db_group": "system",
+    "hard_delete": true,
+    "history_ttl": 0,
+    "read_only": true,
+    "license_scope": false,
+    "index": {
+        "transaction_id": {
+            "comment": "요청 트랜잭션 ID. entity_history 테이블과 JOIN 키",
+            "type": "varchar(64)"
+        },
+        "entity_name": {
+            "comment": "대상 엔티티 이름",
+            "type": "varchar(100)",
+            "required": true
+        },
+        "entity_seq": {
+            "comment": "대상 엔티티 레코드 seq. 로그인/로그아웃 등 레코드 없는 경우 NULL",
+            "type": "bigint"
+        },
+        "action": {
+            "comment": "수행된 작업 유형",
+            "type": [
+                "INSERT",
+                "UPDATE",
+                "DELETE_SOFT",
+                "DELETE_HARD",
+                "LOGIN",
+                "LOGOUT",
+                "ROLLBACK"
+            ],
+            "required": true
+        },
+        "account_seq": {
+            "comment": "작업을 수행한 계정 seq. 비인증 요청은 NULL",
+            "type": "bigint"
+        },
+        "ip_address": {
+            "comment": "요청 IP 주소 (IPv4/IPv6)",
+            "type": "varchar(45)"
+        },
+        "endpoint": {
+            "comment": "요청 API 엔드포인트",
+            "type": "varchar(200)"
+        },
+        "request_method": {
+            "comment": "HTTP 메서드 (GET/POST/PUT/DELETE 등)",
+            "type": "varchar(10)"
+        },
+        "request_payload": {
+            "comment": "요청 본문 JSON. 민감 필드(password, token 등) 자동 마스킹 후 저장. ServerConfig.AuditLogPayload = true 일 때만 기록",
+            "type": "text"
+        },
+        "result_code": {
+            "comment": "HTTP 응답 코드 (200, 400, 401, 403, 500 등)",
+            "type": "int"
+        },
+        "error_message": {
+            "comment": "실패 시 오류 메시지 요약",
+            "type": "varchar(500)"
+        }
+    }
+}

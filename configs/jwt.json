@@ -1,0 +1,7 @@
+{
+    "secret": "${JWT_SECRET}",
+    "access_ttl_sec": 3600,
+    "refresh_ttl_sec": 1209600,
+    "issuer": "entity-server",
+    "algorithm": "HS256"
+}
