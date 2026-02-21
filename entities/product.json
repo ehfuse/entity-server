@@ -1,0 +1,36 @@
+{
+    "name": "product",
+    "description": "product Entity",
+    "index": {
+        "name": {
+            "comment": "제품명",
+            "required": true,
+            "unique": true
+        },
+        "category": {
+            "comment": "카테고리",
+            "type": [
+                "전자제품",
+                "가구",
+                "생활용품"
+            ]
+        },
+        "price": {
+            "comment": "가격"
+        }
+    },
+    "reset_defaults": [
+        {
+            "name": "샘플 제품 A",
+            "category": "전자제품",
+            "price": 10000,
+            "stock": 50
+        },
+        {
+            "name": "샘플 제품 B",
+            "category": "가구",
+            "price": 50000,
+            "stock": 20
+        }
+    ]
+}
