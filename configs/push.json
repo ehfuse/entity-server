@@ -1,0 +1,26 @@
+{
+    "workers": 2,
+    "queue_size": 500,
+    "fcm": {
+        "enabled": true,
+        "type": "service_account",
+        "project_id": "your-firebase-project-id",
+        "private_key_id": "abc123def456...",
+        "private_key_file": "./configs/keys/firebase.pem",
+        "client_email": "firebase-adminsdk-xxxxx@your-firebase-project-id.iam.gserviceaccount.com",
+        "client_id": "123456789012345678901",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-xxxxx%40your-firebase-project-id.iam.gserviceaccount.com"
+    },
+    "apns": {
+        "enabled": false,
+        "_comment": "APNs 직접 전송 (미구현 - 예약)",
+        "key_file": "./configs/keys/apns.p8",
+        "key_id": "ABCDE12345",
+        "team_id": "FGHIJ67890",
+        "bundle_id": "com.example.myapp",
+        "production": false
+    }
+}

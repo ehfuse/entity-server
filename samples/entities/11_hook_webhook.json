@@ -1,0 +1,82 @@
+{
+    "name": "payment",
+    "description": "webhook 훅 예제 — 결제 완료/환불 시 외부 정산 서비스 실시간 통보",
+    "index": {
+        "order_seq": {
+            "comment": "주문 seq",
+            "required": true
+        },
+        "user_seq": {
+            "comment": "결제자 user seq",
+            "required": true
+        },
+        "amount": {
+            "comment": "결제 금액 (*_amount → DECIMAL(15,2) 자동 추론)",
+            "required": true
+        },
+        "method": {
+            "comment": "결제 수단",
+            "type": ["card", "bank_transfer", "virtual_account", "point"],
+            "required": true
+        },
+        "status": {
+            "comment": "결제 상태",
+            "type": ["pending", "paid", "cancelled", "refunded"],
+            "default": "pending"
+        },
+        "paid_at": {
+            "comment": "결제 완료일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "types": {
+        "pg_transaction_id": "varchar(100)",
+        "failure_reason": "text"
+    },
+    "comments": {
+        "pg_transaction_id": "PG사 거래 ID",
+        "failure_reason": "실패 사유"
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "comment": "결제 생성 시 정산 서버로 비동기 통보 (webhook 훅)",
+                "type": "webhook",
+                "url": "https://settlement.internal/hooks/payment-created",
+                "method": "POST",
+                "headers": {
+                    "Authorization": "Bearer ${ctx.webhook_secret}",
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "payment_seq": "${new.seq}",
+                    "order_seq": "${new.order_seq}",
+                    "user_seq": "${new.user_seq}",
+                    "amount": "${new.amount}",
+                    "method": "${new.method}",
+                    "status": "${new.status}"
+                },
+                "async": true,
+                "timeout": 5000
+            }
+        ],
+        "after_update": [
+            {
+                "comment": "결제 상태 변경(환불 등) 시 정산 서버에 동기 통보 (webhook 훅)",
+                "type": "webhook",
+                "url": "https://settlement.internal/hooks/payment-updated",
+                "method": "POST",
+                "headers": {
+                    "Authorization": "Bearer ${ctx.webhook_secret}"
+                },
+                "body": {
+                    "payment_seq": "${new.seq}",
+                    "old_status": "${old.status}",
+                    "new_status": "${new.status}",
+                    "amount": "${new.amount}"
+                },
+                "async": false,
+                "timeout": 8000
+            }
+        ]
+    }
+}

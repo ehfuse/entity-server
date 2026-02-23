@@ -1,0 +1,17 @@
+{
+    "name": "account_audit",
+    "description": "account_audit Entity",
+    "index": {
+        "account_seq": {
+            "comment": "계정 seq",
+            "type": "bigint",
+            "required": true
+        },
+        "action": {
+            "comment": "작업 유형",
+            "type": ["INSERT", "UPDATE", "DELETE", "LOGIN", "LOGOUT"],
+            "required": true
+        }
+    },
+    "license_scope": false
+}

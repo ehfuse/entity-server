@@ -1,0 +1,23 @@
+{
+    "default": "development",
+    "groups": {
+        "development": {
+            "driver": "mysql",
+            "host": "127.0.0.1",
+            "port": 3306,
+            "database": "entity_server",
+            "user": "root",
+            "password": "${DB_PASSWORD_DEVELOPMENT}",
+            "maxOpenConns": 20
+        },
+        "production": {
+            "driver": "mysql",
+            "host": "127.0.0.1",
+            "port": 3306,
+            "database": "entity_server",
+            "user": "entity_user",
+            "password": "${DB_PASSWORD_PRODUCTION}",
+            "maxOpenConns": 50
+        }
+    }
+}

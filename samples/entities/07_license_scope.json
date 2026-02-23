@@ -1,0 +1,43 @@
+{
+    "name": "workspace",
+    "description": "license_scope 예제 — 멀티테넌트에서 라이선스별 데이터 완전 분리",
+    "license_scope": true,
+    "index": {
+        "name": {
+            "comment": "워크스페이스명",
+            "required": true
+        },
+        "plan": {
+            "comment": "플랜",
+            "type": ["free", "starter", "pro", "enterprise"],
+            "default": "free"
+        },
+        "max_members": {
+            "comment": "최대 팀원 수 (자동추론: 직접 uint 선언)"
+        },
+        "owner_seq": {
+            "comment": "소유자 user seq"
+        },
+        "is_active": {
+            "comment": "활성 여부 (is_* → TINYINT(1) 자동 추론)",
+            "default": true
+        },
+        "expires_at": {
+            "comment": "만료일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "types": {
+        "max_members": "uint",
+        "settings_json": "text"
+    },
+    "comments": {
+        "settings_json": "워크스페이스 설정 JSON"
+    },
+    "defaults": {
+        "max_members": 5
+    },
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 120
+    }
+}

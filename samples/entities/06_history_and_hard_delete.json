@@ -1,0 +1,42 @@
+{
+    "name": "article",
+    "description": "이력 보존(history_ttl) & 완전삭제(hard_delete) 예제 — 게시글 수정 이력 3년 보관",
+    "index": {
+        "author_seq": {
+            "comment": "작성자 user seq",
+            "required": true
+        },
+        "title": {
+            "comment": "제목",
+            "required": true
+        },
+        "category": {
+            "comment": "카테고리",
+            "type": ["notice", "blog", "faq", "news"],
+            "default": "blog"
+        },
+        "status": {
+            "comment": "게시 상태",
+            "type": ["draft", "published", "archived"],
+            "default": "draft"
+        },
+        "published_at": {
+            "comment": "게시일시 (*_at → DATETIME 자동 추론)"
+        },
+        "view_count": {
+            "comment": "조회 수 (*_count → INT 자동 추론)"
+        }
+    },
+    "types": {
+        "content": "text",
+        "summary": "text",
+        "tags_json": "text"
+    },
+    "comments": {
+        "content": "본문 (마크다운)",
+        "summary": "요약 (목록 표시용)",
+        "tags_json": "태그 배열 JSON"
+    },
+    "history_ttl": 1095,
+    "hard_delete": false
+}

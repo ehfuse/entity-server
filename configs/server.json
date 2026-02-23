@@ -1,0 +1,10 @@
+{
+    "namespace": "entity-prod",
+    "default_email_domain": "example.com",
+    "language": "ko",
+    "environment": "production",
+    "port": 47200,
+    "enable_auto_schema_sync": true,
+    "global_license_scope": true,
+    "global_optimistic_lock": false
+}

@@ -1,0 +1,51 @@
+{
+    "name": "order_notification",
+    "description": "주문 알림 예제 — 주문 생성 시 고객에게 푸시 전송",
+    "index": {
+        "customer_seq": {
+            "comment": "고객 user seq",
+            "required": true
+        },
+        "order_number": {
+            "comment": "주문 번호",
+            "required": true
+        },
+        "status": {
+            "comment": "주문 상태",
+            "type": ["placed", "confirmed", "shipped", "delivered", "cancelled"],
+            "default": "placed"
+        },
+        "total_amount": {
+            "comment": "주문 금액",
+            "type": "uint"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "push",
+                "target_user_field": "customer_seq",
+                "title": "주문 접수",
+                "push_body": "주문 #${new.order_number}이 접수되었습니다. 금액: ${new.total_amount}원",
+                "push_data": {
+                    "action": "order_created",
+                    "order_seq": "${new.seq}",
+                    "order_number": "${new.order_number}"
+                }
+            }
+        ],
+        "after_update": [
+            {
+                "type": "push",
+                "target_user_field": "customer_seq",
+                "title": "주문 상태 변경",
+                "push_body": "주문 #${new.order_number} 상태: ${new.status}",
+                "push_data": {
+                    "action": "order_updated",
+                    "order_seq": "${new.seq}",
+                    "status": "${new.status}"
+                }
+            }
+        ]
+    }
+}
