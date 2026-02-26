@@ -1,0 +1,52 @@
+{
+    "name": "exchange_rate",
+    "description": "license_scope: false 예제 — 전 라이선스 공용 기준 데이터 (환율). license_seq 컬럼 없이 모든 테넌트가 동일 데이터 공유",
+    "license_scope": false,
+    "index": {
+        "base_currency": {
+            "comment": "기준 통화 (ISO 4217)",
+            "type": "varchar(3)",
+            "required": true
+        },
+        "quote_currency": {
+            "comment": "환산 통화 (ISO 4217)",
+            "type": "varchar(3)",
+            "required": true
+        },
+        "rate": {
+            "comment": "환산 비율 (*_rate → 자동추론 없음, decimal 명시)",
+            "type": "decimal",
+            "required": true
+        },
+        "effective_date": {
+            "comment": "적용일 (*_date → DATE 자동 추론)",
+            "required": true
+        },
+        "source": {
+            "comment": "환율 출처",
+            "type": ["ecb", "openexchangerates", "manual"],
+            "default": "manual"
+        }
+    },
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 3600
+    },
+    "unique": [["base_currency", "quote_currency", "effective_date"]],
+    "reset_defaults": [
+        {
+            "base_currency": "USD",
+            "quote_currency": "KRW",
+            "rate": 1350.0,
+            "effective_date": "2025-01-01",
+            "source": "manual"
+        },
+        {
+            "base_currency": "EUR",
+            "quote_currency": "KRW",
+            "rate": 1480.0,
+            "effective_date": "2025-01-01",
+            "source": "manual"
+        }
+    ]
+}

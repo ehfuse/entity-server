@@ -1,0 +1,60 @@
+{
+    "name": "article",
+    "description": "이력 보존(history_ttl) & 완전삭제(hard_delete) 예제 — 게시글 수정 이력 3년 보관",
+    "index": {
+        "author_seq": {
+            "comment": "작성자 user seq",
+            "required": true
+        },
+        "title": {
+            "comment": "제목",
+            "required": true
+        },
+        "category": {
+            "comment": "카테고리",
+            "type": ["notice", "blog", "faq", "news"],
+            "default": "blog"
+        },
+        "status": {
+            "comment": "게시 상태",
+            "type": ["draft", "published", "archived"],
+            "default": "draft"
+        },
+        "published_at": {
+            "comment": "게시일시 (*_at → DATETIME 자동 추론)"
+        },
+        "view_count": {
+            "comment": "조회 수 (*_count → INT 자동 추론)"
+        }
+    },
+    "fields": {
+        "content": {
+            "type": "longtext",
+            "comment": "게시글 본문",
+            "required": true
+        },
+        "summary": {
+            "type": "text",
+            "comment": "요약 (없으면 본문 앞 200자 자동 생성)"
+        },
+        "meta": {
+            "comment": "SEO / 부가 메타데이터 그룹 (중첩 fields 예제)",
+            "fields": {
+                "og_title": {
+                    "type": "varchar(200)",
+                    "comment": "OG 제목 (미입력 시 title 사용)"
+                },
+                "og_image_url": {
+                    "type": "varchar(500)",
+                    "comment": "OG 이미지 URL"
+                },
+                "tags_json": {
+                    "type": "json",
+                    "comment": "태그 목록 (JSON 배열)"
+                }
+            }
+        }
+    },
+    "history_ttl": 1095,
+    "hard_delete": false
+}

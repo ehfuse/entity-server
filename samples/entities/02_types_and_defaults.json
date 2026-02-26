@@ -1,0 +1,67 @@
+{
+    "name": "product",
+    "description": "명시적 타입 선언 & defaults 예제 — 자동 추론이 안 되는 필드에 types 사용",
+    "index": {
+        "sku": {
+            "comment": "상품 코드",
+            "required": true,
+            "unique": true
+        },
+        "category": {
+            "comment": "카테고리",
+            "type": ["electronics", "furniture", "clothing", "food"],
+            "default": "electronics"
+        },
+        "price": {
+            "comment": "정가 (decimal — 자동추론 불가, 명시 선언)",
+            "type": "decimal"
+        },
+        "stock_qty": {
+            "comment": "재고 수량 (*_qty → INT 자동 추론)",
+            "default": 0
+        },
+        "weight": {
+            "comment": "무게(kg) — 자동추론 없음, types에서 decimal 선언",
+            "type": "decimal"
+        },
+        "is_available": {
+            "comment": "판매 가능 여부 (is_* → TINYINT(1) 자동 추론)",
+            "default": true
+        },
+        "launched_at": {
+            "comment": "출시일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "fields": {
+        "description": {
+            "type": "text",
+            "comment": "상품 상세 설명"
+        },
+        "thumbnail_url": {
+            "type": "varchar(500)",
+            "comment": "썸네일 이미지 URL"
+        },
+        "spec_json": {
+            "type": "json",
+            "comment": "상품 스펙 (JSON 객체)"
+        }
+    },
+    "reset_defaults": [
+        {
+            "sku": "ELEC-001",
+            "category": "electronics",
+            "price": 99000,
+            "stock_qty": 100,
+            "is_available": true,
+            "description": "샘플 전자제품"
+        },
+        {
+            "sku": "FURN-001",
+            "category": "furniture",
+            "price": 299000,
+            "stock_qty": 20,
+            "is_available": true,
+            "description": "샘플 가구"
+        }
+    ]
+}

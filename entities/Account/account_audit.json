@@ -1,0 +1,16 @@
+{
+    "name": "account_audit",
+    "description": "account 감사 로그. JWT 인증 시에만 account_seq는 required",
+    "index": {
+        "account_seq": {
+            "comment": "계정 seq (JWT 인증 시 account.seq 참조. HMAC은 nullable)",
+            "type": "bigint",
+            "nullable": true
+        },
+        "action": {
+            "comment": "작업 유형",
+            "type": ["INSERT", "UPDATE", "DELETE", "LOGIN", "LOGOUT"],
+            "required": true
+        }
+    }
+}

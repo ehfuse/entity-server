@@ -1,0 +1,52 @@
+{
+    "name": "user_point",
+    "description": "SQL 훅 예제 — INSERT/UPDATE 시 자동 감사 로그 기록 (실행형) + SELECT 결과 주입 (조회형)",
+    "index": {
+        "user_seq": {
+            "comment": "사용자 seq",
+            "required": true,
+            "unique": true
+        },
+        "point": {
+            "comment": "보유 포인트",
+            "type": "uint"
+        },
+        "grade": {
+            "comment": "등급",
+            "type": ["bronze", "silver", "gold", "platinum"],
+            "default": "bronze"
+        },
+        "updated_at": {
+            "comment": "마지막 포인트 변경일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "comment": "포인트 생성 이력 기록 (실행형 SQL 훅)",
+                "type": "sql",
+                "query": "INSERT INTO point_history (user_seq, delta, reason, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${new.user_seq}", "${new.point}", "initial_grant"],
+                "async": false
+            }
+        ],
+        "after_update": [
+            {
+                "comment": "포인트 변경 이력 기록 (실행형 SQL 훅)",
+                "type": "sql",
+                "query": "INSERT INTO point_history (user_seq, delta, reason, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${new.user_seq}", "${new.point}", "update"],
+                "async": true
+            }
+        ],
+        "after_get": [
+            {
+                "comment": "최근 포인트 변경 이력 5건 주입 (조회형 SQL 훅)",
+                "type": "sql",
+                "query": "SELECT delta, reason, created_time FROM point_history WHERE user_seq = ? ORDER BY created_time DESC LIMIT 5",
+                "params": ["${new.user_seq}"],
+                "assign_to": "recent_history"
+            }
+        ]
+    }
+}
