@@ -1,0 +1,54 @@
+{
+    "name": "activity_log",
+    "description": "read_only 예제 — API를 통한 수정·삭제가 불가하고 서버 내부(훅/SP) 로만 기록되는 감사 로그",
+    "read_only": true,
+    "hard_delete": true,
+    "history_ttl": 0,
+    "index": {
+        "actor_seq": {
+            "comment": "행위자 user seq (null = 시스템)"
+        },
+        "entity_name": {
+            "comment": "대상 엔티티명",
+            "required": true
+        },
+        "entity_seq": {
+            "comment": "대상 레코드 seq"
+        },
+        "action": {
+            "comment": "수행된 작업",
+            "type": [
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "LOGIN",
+                "LOGOUT",
+                "EXPORT",
+                "IMPORT"
+            ],
+            "required": true
+        },
+        "ip_address": {
+            "comment": "요청 IP",
+            "type": "varchar(45)"
+        },
+        "result_code": {
+            "comment": "결과 코드 (HTTP 상태)",
+            "type": "int"
+        }
+    },
+    "fields": {
+        "before_snapshot": {
+            "type": "json",
+            "comment": "변경 전 데이터 스냅샷"
+        },
+        "after_snapshot": {
+            "type": "json",
+            "comment": "변경 후 데이터 스냅샷"
+        },
+        "detail": {
+            "type": "text",
+            "comment": "작업 상세 설명"
+        }
+    }
+}

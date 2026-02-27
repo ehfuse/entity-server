@@ -1,0 +1,29 @@
+{
+    "name": "inventory",
+    "description": "optimistic_lock 예제 — 동시 수정 충돌 방지가 필요한 재고 엔티티",
+    "optimistic_lock": true,
+    "index": {
+        "product_seq": {
+            "comment": "상품 seq",
+            "required": true,
+            "unique": true
+        },
+        "warehouse_code": {
+            "comment": "창고 코드",
+            "required": true
+        },
+        "qty_available": {
+            "comment": "가용 재고 수량 (*_qty → INT 자동 추론)"
+        },
+        "qty_reserved": {
+            "comment": "예약된 재고 수량 (*_qty → INT 자동 추론)"
+        },
+        "location": {
+            "comment": "창고 내 위치 (예: A-01-03)"
+        },
+        "last_stocked_at": {
+            "comment": "마지막 입고일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "unique": [["product_seq", "warehouse_code"]]
+}

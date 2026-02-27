@@ -1,0 +1,78 @@
+{
+    "name": "project",
+    "description": "submit & delete 훅 예제 — 프로젝트 생성 시 기본 태스크 자동 생성, 삭제 시 연관 데이터 정리",
+    "index": {
+        "owner_seq": {
+            "comment": "프로젝트 소유자 user seq",
+            "required": true
+        },
+        "name": {
+            "comment": "프로젝트명",
+            "required": true
+        },
+        "status": {
+            "comment": "진행 상태",
+            "type": ["planning", "active", "on_hold", "completed", "cancelled"],
+            "default": "planning"
+        },
+        "due_date": {
+            "comment": "마감일 (*_date → DATE 자동 추론)"
+        },
+        "task_count": {
+            "comment": "태스크 수 (*_count → INT 자동 추론)"
+        }
+    },
+    "fields": {
+        "description": {
+            "type": "text",
+            "comment": "프로젝트 설명"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "comment": "프로젝트 생성 시 기본 태스크 3개 자동 생성 (submit 훅)",
+                "type": "submit",
+                "entity": "task",
+                "data": {
+                    "project_seq": "${new.seq}",
+                    "title": "요구사항 분석",
+                    "status": "todo",
+                    "priority": "high"
+                }
+            },
+            {
+                "comment": "프로젝트 멤버에 소유자 자동 추가 (submit 훅 Upsert)",
+                "type": "submit",
+                "entity": "project_member",
+                "match": {
+                    "project_seq": "${new.seq}",
+                    "user_seq": "${new.owner_seq}"
+                },
+                "data": {
+                    "project_seq": "${new.seq}",
+                    "user_seq": "${new.owner_seq}",
+                    "role": "owner"
+                }
+            }
+        ],
+        "after_delete": [
+            {
+                "comment": "프로젝트 삭제 시 모든 태스크 삭제 (delete 훅)",
+                "type": "delete",
+                "entity": "task",
+                "match": {
+                    "project_seq": "${old.seq}"
+                }
+            },
+            {
+                "comment": "프로젝트 삭제 시 멤버 목록 삭제 (delete 훅)",
+                "type": "delete",
+                "entity": "project_member",
+                "match": {
+                    "project_seq": "${old.seq}"
+                }
+            }
+        ]
+    }
+}

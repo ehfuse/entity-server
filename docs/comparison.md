@@ -1,0 +1,215 @@
+# Comparison (비교)
+
+> 코드베이스(`internal/`)를 직접 분석한 결과를 반영합니다.  
+> 경쟁 제품은 각 공식 문서 기준이며, 버전에 따라 다를 수 있습니다.
+
+---
+
+## 1. Entity Server 핵심 특성
+
+| 속성         | 내용                                                                                                              |
+| ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| 런타임       | Go 1.25, Fiber v2 — 단일 바이너리, 저메모리                                                                       |
+| 스키마 관리  | JSON 설정 파일 + `sync` 명령 (코드 배포 없이 스키마 반영)                                                         |
+| DB 지원      | MySQL 8+, MariaDB, TiDB, PostgreSQL 14+, SQLite 3 (CGO 불필요), MSSQL (SQL Server)                                |
+| NoSQL 스토어 | MongoDB / DynamoDB / Firestore / ScyllaDB / CouchDB 선택형                                                        |
+| 암호화       | XChaCha20-Poly1305 (nonce 24 B, Poly1305 태그 16 B) — payload 칼럼 암호화                                         |
+| 키 파생      | HKDF-SHA256(source, info) → `DeriveKey32HKDF` (패킷 키·DB 키 모두 HKDF 사용); `DeriveKey32` (SHA-256, Deprecated) |
+| 인증         | HMAC-SHA256 API 키 + JWT (HS256) + OAuth 2.0 (Google/GitHub/Naver/Kakao/커스텀) + RBAC                            |
+| 트랜잭션     | DB ACID (`sql.BeginTx`) + SQL 훅 동일 tx 포함, seq placeholder($tx.N) 체이닝                                      |
+| 이력/롤백    | `entity_history_*` 테이블, 트랜잭션 ID 단위 그룹 롤백                                                             |
+| 훅 시스템    | Webhook / SQL / Procedure / Entity / Submit / Delete / Push 훅 7종                                                |
+| 캐시         | Memory / File / Redis / Memcache / SQLite 선택형                                                                  |
+| 단건 조회    | seq 기반(`GET /:entity/:seq`) + 조건 기반 완전 복호화(`POST /:entity/find`) 두 가지 지원                          |
+| 배포         | 단일 바이너리 or Docker, 크로스컴파일 (linux/darwin/windows)                                                      |
+
+---
+
+## 2. 도구별 비슷한 점 / 다른 점
+
+처음 보면 다양한 도구가 떠오를 수 있습니다. 각 비교가 맞는 부분과 다른 부분을 정리했습니다.
+
+| 비교 대상                                | 비슷한 점                                              | 다른 점                                                                                                                                                                |
+| ---------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **NoSQL** (MongoDB 등)                   | 본문 데이터를 JSON blob으로 저장. 스키마 변경이 유연   | 기본은 MySQL/MariaDB/TiDB/PostgreSQL/SQLite/MSSQL 관계형 DB 사용 (MongoDB·DynamoDB·Firestore·ScyllaDB·CouchDB는 DataStore로 별도 지원). 인덱스 필드는 타입·제약이 명확 |
+| **Supabase / Firebase**                  | JSON 설정으로 API 자동 생성, 인증(OAuth 2.0)·권한 내장 | 자체 서버에 직접 설치하는 단일 Go 바이너리. 외부 서비스 의존 없음. 데이터 암호화 내장                                                                                  |
+| **GraphQL** (Hasura 등)                  | 스키마 정의만으로 API 자동 생성                        | REST 기반. 쿼리 언어 없이 일반 HTTP로 호출. 암호화·이력·RBAC 기본 포함                                                                                                 |
+| **ORM** (GORM, TypeORM 등)               | 스키마로부터 DB 테이블 관리                            | ORM은 코드에서 모델 정의 후 앱이 직접 DB 접근. Entity Server는 그 위에 API·인증·이력까지 자동 제공                                                                     |
+| **PostgREST / pREST**                    | DB 스키마로부터 REST API 자동 노출                     | DB 연결은 필요하지만 기존 스키마 불필요 — 엔티티 JSON만 작성하면 테이블+API 자동 생성. 암호화·이력·RBAC이 기본 포함                                                    |
+| **Druid / ClickHouse**                   | 이력 데이터를 대량으로 저장                            | 집계/분석 용도가 아니라 CRUD+revision 추적 용도. OLAP 아님                                                                                                             |
+| **일반 프레임워크** (Laravel, Spring 등) | CRUD API 제공                                          | 코드 작성 없음. 엔티티 JSON 파일이 곧 스키마이자 API 정의                                                                                                              |
+
+---
+
+## 3. 경쟁 제품 비교표
+
+비교 대상: **Supabase · Hasura · Directus · PostgREST · Strapi · Firebase · 전통 ORM 서버**
+
+### 3-1. 핵심 기능
+
+| 기능                         | Entity Server |    Supabase     |      Hasura      |    Directus    |    PostgREST     |     Strapi      |     Firebase     |    ORM 서버    |
+| ---------------------------- | :-----------: | :-------------: | :--------------: | :------------: | :--------------: | :-------------: | :--------------: | :------------: |
+| **설정 기반 스키마 운영**    |    ✅ 강함    | ⚠️ 마이그레이션 |   ⚠️ DDL 직접    |   ✅ UI/API    |  ❌ SQL 스키마   |  ✅ 타입 빌더   |  ✅ NoSQL 유연   | ❌ 코드 마이그 |
+| **코드 없이 엔티티 추가**    |      ✅       |     ⚠️ 부분     |     ⚠️ 부분      |       ✅       |        ❌        |       ✅        |        ✅        |       ❌       |
+| **온프레미스 완전 제어**     |      ✅       |  ⚠️ 셀프호스트  |  ⚠️ 셀프호스트   |       ✅       |        ✅        |       ✅        |        ❌        |       ✅       |
+| **payload 암호화 (DB 저장)** | ✅ XChaCha20  |       ❌        |        ❌        |       ❌       |        ❌        |       ❌        | ⚠️ 관리형 암호화 |   직접 구현    |
+| **트랜잭션 (훅 포함)**       |      ✅       |   ⚠️ Edge Fn    |    ⚠️ Actions    |  ⚠️ 이벤트 훅  | ⚠️ PostgreSQL Fn | ⚠️ 라이프사이클 |        ❌        |       ✅       |
+| **seq placeholder 체이닝**   |  ✅ `$tx.N`   |       ❌        |        ❌        |       ❌       |        ❌        |       ❌        |        ❌        |   직접 구현    |
+| **이력 관리 & 롤백**         | ✅ 그룹 롤백  |   ⚠️ pg_audit   |   ⚠️ 별도 설정   |  ⚠️ Revisions  |        ❌        |  ⚠️ Revisions   |    ⚠️ 제한적     |   직접 구현    |
+| **다중 DB 그룹**             | ✅ 그룹 분리  |   ❌ 단일 PG    |  ⚠️ 페더레이션   |       ✅       |    ❌ 단일 PG    |   ⚠️ 플러그인   |        ❌        |   직접 구현    |
+| **비SQL 스토어 지원**        |    ✅ 5종³    |  ❌ (PG 전용)   |  ⚠️ 페더레이션   | ✅ Firebase 등 |        ❌        |   ⚠️ 플러그인   |   ✅ Firestore   |   직접 구현    |
+| **GraphQL**                  |      ❌       |       ✅        |        ✅        |       ✅       |        ❌        |       ✅        |     ⚠️ 제한      |   직접 구현    |
+| **Realtime / Pub-Sub**       |      ❌       |   ✅ Realtime   | ✅ Subscriptions |  ✅ WebSocket  |        ❌        |  ✅ WebSocket   |   ✅ Realtime    |   직접 구현    |
+| **파일/스토리지 관리**       |      ❌       |   ✅ Storage    |        ❌        |       ✅       |        ❌        |       ✅        |    ✅ Storage    |   직접 구현    |
+| **CGO 없이 단일 바이너리**   |      ✅       |       N/A       |       N/A        |      N/A       |  ❌ libpq 필요   |  N/A (Node.js)  |       N/A        |  언어별 상이   |
+
+### 3-2. 성능 & 운영
+
+| 항목                | Entity Server                                                       | Supabase             | Hasura          | Directus       | PostgREST        | Strapi         | Firebase |
+| ------------------- | ------------------------------------------------------------------- | -------------------- | --------------- | -------------- | ---------------- | -------------- | -------- |
+| 런타임 메모리       | ⭐ 낮음 (Go, ~20 MB)                                                | 중간 (Node+PG)       | 중간 (Haskell)  | 중간 (Node.js) | ⭐ 매우 낮음     | 높음 (Node.js) | 관리형   |
+| 처리량 (HTTP req/s) | ⭐⭐ 높음 (Fiber v2)¹ / ⭐⭐⭐ `enable_packet_encryption: false` 시 | 중간                 | 중간            | 중간           | ⭐⭐ 매우 높음²  | 낮음           | 관리형   |
+| 초기 구동 시간      | ⭐⭐ ~100 ms                                                        | 느림 (컨테이너 다중) | 느림            | 느림           | ⭐⭐ 매우 빠름   | 느림           | 관리형   |
+| 다중 인스턴스 확장  | ⚠️ Redis 설정 시 지원⁴                                              | ✅ 수평 확장         | ✅ 수평 확장    | ✅ 수평 확장   | ✅               | ✅             | ✅ 자동  |
+| 스키마 변경 무중단  | ✅ `sync-schema`                                                    | ⚠️ 마이그레이션 필요 | ⚠️ 마이그레이션 | ✅             | ❌               | ✅             | ✅       |
+| Docker 없이 배포    | ✅ 단일 바이너리                                                    | ❌                   | ❌              | ❌             | ✅ 단일 바이너리 | ❌             | N/A      |
+
+---
+
+> ¹ 요청마다 XChaCha20 암복호 + 훅 실행 + 이력 기록 수행. 프레임워크 자체는 fasthttp 기반으로 충분히 빠르지만, 피처 오버헤드로 인해 순수 proxy 대비 낮아짐. `configs/security.json`의 `enable_packet_encryption: false` 설정으로 전체 비활성화 가능하며, 비활성 시 XChaCha20 암복호 오버헤드가 제거되어 처리량이 한 단계 높아짐.  
+> ² PostgREST는 HTTP → SQL 변환 전단 proxy 구조로 암호화·훅·이력 조차 없음. 순수 처리량에서는 Entity Server보다 빠르나, 이를 위해 보안 기능을 포기한 구조임.  
+> ³ MongoDB, DynamoDB, Firestore, ScyllaDB/Cassandra, CouchDB 5종 지원.  
+> ⁴ `configs/cache.json`의 `driver=redis` 설정 시 TxQueue·RateLimiter 모두 Redis 백엔드로 교체되어 수평 확장 지원. 기본값(Memory)은 단일 인스턴스 전용.
+
+---
+
+## 4. Entity Server vs Supabase — 1:1 심층 비교
+
+Supabase는 PostgreSQL 기반 BaaS(Backend as a Service)로, 인증·Realtime·Storage·Edge Functions를 하나의 플랫폼으로 제공합니다.  
+Entity Server는 구독이나 외부 클라우드 없이 자체 인프라에서 운영하는 **셀프호스티드 백엔드 서비스**입니다.
+
+### 4-1. 서비스 형태 & 비용
+
+| 항목               | Entity Server                      | Supabase                                                       |
+| ------------------ | ---------------------------------- | -------------------------------------------------------------- |
+| **형태**           | 셀프호스트 전용 — 완전 자체 운영   | BaaS — 관리형 클라우드 기본 (셀프호스트 옵션 있음)             |
+| **배포**           | 단일 바이너리 ~20 MB, 도커 1개     | Docker Compose 20+ 서비스 (API/Auth/Realtime/Storage/Studio …) |
+| **비용**           | 무료 오픈소스 — 인프라 비용만 발생 | Free $0 / Pro $25/월~ / Team $599/월~ / Enterprise 별도 견적   |
+| **데이터 소유권**  | 완전 자체 소유 — 외부 전송 없음    | Supabase 클라우드에 저장 (셀프호스트 시 자체 소유)             |
+| **외부 의존성**    | 없음 (Redis·Memcache 선택 사항)    | Supabase 플랫폼 또는 Docker Compose 전체 스택 필요             |
+| **무료 플랜 제한** | 없음                               | 1주 비활성 시 프로젝트 일시정지, 프로젝트 2개 한도             |
+
+### 4-2. 핵심 기능 비교
+
+| 기능                       | Entity Server                                       | Supabase                                             |
+| -------------------------- | --------------------------------------------------- | ---------------------------------------------------- |
+| **DB 지원**                | MySQL·MariaDB·TiDB·PostgreSQL·SQLite·MSSQL 6종      | PostgreSQL 전용                                      |
+| **NoSQL 스토어**           | MongoDB·DynamoDB·Firestore·ScyllaDB·CouchDB 5종     | ❌ (PostgreSQL만 사용)                               |
+| **payload(DB row) 암호화** | ✅ XChaCha20-Poly1305 내장                          | ❌ TLS만 (DB 직접 열람 시 평문 노출)                 |
+| **패킷(전송 본문) 암호화** | ✅ XChaCha20-Poly1305 (경로별 제어 가능)            | ❌                                                   |
+| **트랜잭션 (훅 포함)**     | ✅ SQL 훅까지 동일 DB 트랜잭션                      | ⚠️ Edge Functions 경유 (외부 HTTP 호출, 롤백 불완전) |
+| **이력 & 그룹 롤백**       | ✅ `entity_history_*` 테이블, txID 단위 그룹 롤백   | ⚠️ pg_audit 별도 설치 필요                           |
+| **훅/이벤트**              | Webhook·SQL·Procedure·Entity·Submit·Delete·Push 7종 | Database Webhooks·Edge Functions                     |
+| **Realtime / Pub-Sub**     | ❌                                                  | ✅ Row-level Realtime Subscriptions                  |
+| **GraphQL**                | ❌                                                  | ✅ Instant GraphQL API                               |
+| **파일 스토리지**          | ❌                                                  | ✅ S3 호환 Storage                                   |
+| **관리 UI(Dashboard)**     | ❌ (설정 파일 기반 운영)                            | ✅ Supabase Studio                                   |
+| **다중 DB 그룹**           | ✅ 엔티티별 DB 그룹 분리                            | ❌ 프로젝트당 단일 PostgreSQL                        |
+| **seq placeholder 체이닝** | ✅ `$tx.N` — 동일 트랜잭션 내 PK 참조               | ❌                                                   |
+| **Row Level Security**     | ✅ RBAC (엔티티·역할·필드 단위)                     | ✅ PostgreSQL RLS (정책 기반)                        |
+| **OAuth 2.0**              | ✅ Google·GitHub·Naver·Kakao·커스텀                 | ✅ 30+ 소셜 프로바이더                               |
+| **Nonce 재사용 방지**      | ✅ NonceStore (Memory·Memcache·Redis)               | ❌                                                   |
+| **CGO 없는 단일 바이너리** | ✅ 크로스컴파일 (linux·darwin·windows)              | N/A (관리형 서비스)                                  |
+| **보안 인증**              | ❌                                                  | SOC2 Type 2 / HIPAA (Team 플랜 이상)                 |
+
+### 4-3. 언제 무엇을 선택하나
+
+| 요건                                      | 선택              | 이유                                                            |
+| ----------------------------------------- | ----------------- | --------------------------------------------------------------- |
+| DB row 암호화 + 패킷 암호화가 필수        | **Entity Server** | 경쟁 제품 중 유일한 이중 암호화 내장                            |
+| 데이터가 외부 클라우드에 나가면 안 됨     | **Entity Server** | 완전 자체 인프라, 외부 의존 없음                                |
+| MySQL·MariaDB·MSSQL 기존 DB를 그대로 사용 | **Entity Server** | PostgreSQL 전용인 Supabase와 달리 6종 지원                      |
+| 인프라 없이 빠르게 시작, 소규모 팀        | **Supabase**      | 관리형 플랫폼, Dashboard UI, Free 플랜                          |
+| Realtime 구독 / GraphQL이 핵심 요건       | **Supabase**      | Row-level Realtime, Instant GraphQL 기본 내장                   |
+| 파일·미디어 업로드·CDN 필요               | **Supabase**      | S3 호환 Storage + Image Transformations 내장                    |
+| 서버리스 함수(Edge Functions)로 로직 확장 | **Supabase**      | Deno 기반 Edge Functions (500,000 호출/월 무료)                 |
+| SOC2·HIPAA 컴플라이언스 인증 필요         | **Supabase**      | Team 플랜 이상에서 인증 제공                                    |
+| 훅 포함 완전한 ACID 트랜잭션              | **Entity Server** | 훅 실패 시 전체 롤백 — Edge Functions 경유 방식보다 일관성 높음 |
+
+---
+
+## 5. 보안 비교
+
+| 항목                  | Entity Server                         | Supabase               | Hasura              | Firebase              |
+| --------------------- | ------------------------------------- | ---------------------- | ------------------- | --------------------- |
+| **전송 암호화**       | TLS (nginx 앞단 위임)                 | TLS 자동               | TLS 자동            | TLS 자동              |
+| **DB row 암호화**     | ✅ XChaCha20-Poly1305 (인증 암호화)   | ❌                     | ❌                  | ⚠️ 관리형             |
+| **키 파생 방식**      | HKDF-SHA256(secret, info) ✅          | 관리형                 | 관리형              | 관리형                |
+| **API 인증**          | HMAC-SHA256 + JWT + OAuth 2.0         | anon/service key + JWT | Admin secret + JWT  | Firebase Auth (OAuth) |
+| **RBAC 접근 제어**    | ✅ 엔티티별 역할/필드 제한            | ✅ Row Level Security  | ✅ Permission rules | ✅ Rules              |
+| **Nonce 재사용 방지** | ✅ Nonce Store (인메모리)             | ❌                     | ❌                  | ❌                    |
+| **쿼리 인젝션 방지**  | ✅ Prepared statement (`?`/`$N` bind) | ✅                     | ✅                  | ✅                    |
+
+---
+
+## 6. 항목별 평점 (1–5)
+
+> 5 = 매우 우수, 1 = 미지원/매우 부족
+
+| 항목                   | Entity Server |   Supabase   |    Hasura    |   Directus   |  PostgREST   |    Strapi    |   Firebase   |   ORM 서버   |
+| ---------------------- | :-----------: | :----------: | :----------: | :----------: | :----------: | :----------: | :----------: | :----------: |
+| **처리 성능**          |  ⭐⭐⭐⭐ 4   |   ⭐⭐⭐ 3   |   ⭐⭐⭐ 3   |    ⭐⭐ 2    | ⭐⭐⭐⭐⭐ 5 |    ⭐⭐ 2    |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  |
+| **설정 편의성**        |  ⭐⭐⭐⭐ 4   |   ⭐⭐⭐ 3   |   ⭐⭐⭐ 3   |  ⭐⭐⭐⭐ 4  |    ⭐⭐ 2    |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |     ⭐ 1     |
+| **Row 암호화**         | ⭐⭐⭐⭐⭐ 5  |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |    ⭐⭐ 2    |    ⭐⭐ 2    |
+| **트랜잭션 완전성**    | ⭐⭐⭐⭐⭐ 5  |   ⭐⭐⭐ 3   |   ⭐⭐⭐ 3   |    ⭐⭐ 2    |  ⭐⭐⭐⭐ 4  |    ⭐⭐ 2    |     ⭐ 1     | ⭐⭐⭐⭐⭐ 5 |
+| **온프레미스 제어**    | ⭐⭐⭐⭐⭐ 5  |   ⭐⭐⭐ 3   |   ⭐⭐⭐ 3   | ⭐⭐⭐⭐⭐ 5 | ⭐⭐⭐⭐⭐ 5 | ⭐⭐⭐⭐⭐ 5 |     ⭐ 1     | ⭐⭐⭐⭐⭐ 5 |
+| **이력 & 롤백**        | ⭐⭐⭐⭐⭐ 5  |    ⭐⭐ 2    |    ⭐⭐ 2    |   ⭐⭐⭐ 3   |     ⭐ 1     |   ⭐⭐⭐ 3   |    ⭐⭐ 2    |   ⭐⭐⭐ 3   |
+| **훅/이벤트 시스템**   |  ⭐⭐⭐⭐ 4   |   ⭐⭐⭐ 3   |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  |    ⭐⭐ 2    |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |
+| **다중 인스턴스 확장** |  ⭐⭐⭐⭐ 4⁴  | ⭐⭐⭐⭐⭐ 5 | ⭐⭐⭐⭐⭐ 5 |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |  ⭐⭐⭐⭐ 4  |
+| **비SQL 스토어**       |  ⭐⭐⭐⭐ 4³  |     ⭐ 1     |    ⭐⭐ 2    |   ⭐⭐⭐ 3   |     ⭐ 1     |    ⭐⭐ 2    | ⭐⭐⭐⭐⭐ 5 |   ⭐⭐⭐ 3   |
+| **GraphQL / Realtime** |     ⭐ 1      | ⭐⭐⭐⭐⭐ 5 | ⭐⭐⭐⭐⭐ 5 | ⭐⭐⭐⭐⭐ 5 |     ⭐ 1     |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |  직접 구현   |
+| **Key Security (KDF)** |  ⭐⭐⭐⭐ 4   |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |  직접 구현   |
+| **패킷 암호화**        | ⭐⭐⭐⭐⭐ 5  |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |     ⭐ 1     |    ⭐⭐ 2    |  직접 구현   |
+| **인증 유연성**        |  ⭐⭐⭐⭐ 4   | ⭐⭐⭐⭐⭐ 5 |  ⭐⭐⭐⭐ 4  | ⭐⭐⭐⭐⭐ 5 |    ⭐⭐ 2    |   ⭐⭐⭐ 3   | ⭐⭐⭐⭐⭐ 5 |  직접 구현   |
+| **합계 / 65점**        |   **55점**    |   **39점**   |   **40점**   |   **43점**   |   **34점**   |   **39점**   |   **46점**   |  **32점**\*  |
+
+> \* ORM 서버는 GraphQL/Realtime·Key Security·패킷 암호화·인증 유연성 4개 항목이 "직접 구현"(미산정)으로 9개 항목 기준 합산.
+
+---
+
+## 7. 장점 상세
+
+### 장점
+
+| 항목                                  | 설명                                                                                                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **단일 바이너리 + CGO 없음**          | `modernc.org/sqlite` 덕분에 크로스컴파일 용이, Linux/macOS/Windows 6종 바이너리 자동 배포                                                       |
+| **XChaCha20-Poly1305 payload 암호화** | DB를 직접 열람해도 데이터 판독 불가 — Supabase·Hasura·Directus에 없는 차별점                                                                    |
+| **완전한 트랜잭션 (훅 포함)**         | SQL 훅까지 동일 DB 트랜잭션에 묶임 — 훅 실패 시 전체 롤백                                                                                       |
+| **$tx.N seq 체이닝**                  | Insert 후 생성된 PK를 같은 트랜잭션 내 다음 SQL에 참조 가능 — ORM 없이도 복잡한 관계 표현                                                       |
+| **설정 기반 무중단 스키마 반영**      | JSON 파일 변경 + `sync-schema` 한 번으로 DDL 적용 — 코드 배포 불필요                                                                            |
+| **이력 그룹 롤백**                    | 트랜잭션 ID 단위 복수 테이블 롤백 — Directus/Strapi revision보다 granular                                                                       |
+| **Fiber v2 고성능 HTTP**              | 동급 피처 제품(Directus·Strapi Node.js) 대비 처리량 우위. 암호화·훅·이력 오버헤드를 감안하면 빠른 편에 속함. thin proxy인 PostgREST보다는 느림. |
+| **Dialect 추상화**                    | MySQL → PostgreSQL 전환 시 서비스 코드 무변경, SQLite로 개발환경 통일 가능                                                                      |
+
+---
+
+## 8. 팀/상황별 선택 가이드
+
+| 상황                                                 | 권장 선택                | 이유                                                                                                                                         |
+| ---------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 업무 테이블이 자주 추가되고, payload 암호화가 필수   | **Entity Server** ✅     | 설정 기반 스키마 + XChaCha20-Poly1305 — 경쟁 제품 중 유일                                                                                    |
+| 빠른 프로토타이핑, 비개발자 포함 운영                | **Directus / Strapi**    | 관리 UI 내장, 콘텐츠 타입 빌더                                                                                                               |
+| GraphQL + Realtime이 핵심 요건                       | **Supabase / Hasura**    | Subscription 내장                                                                                                                            |
+| PostgreSQL만 사용, 초고성능 REST + 최소 서버         | **PostgREST**            | 바이너리 단일 프로세스, pg RLS로 인증 처리                                                                                                   |
+| 모바일 앱 + Serverless + 구글 생태계                 | **Firebase**             | Auth·Storage·Functions 통합, 글로벌 인프라                                                                                                   |
+| 복잡한 도메인 로직, 타입 안전 ORM, 팀 역량이 충분    | **ORM 서버 (직접 구현)** | 최대 유연성, 비즈니스 로직 완전 제어                                                                                                         |
+| 단일 바이너리 온프레미스 + 다중 DB + 트랜잭션 완전성 | **Entity Server** ✅     | CGO 없는 크로스컴파일, DB 그룹, 훅 포함 ACID                                                                                                 |
+| 수평 확장(수십 인스턴스) + NoSQL 혼용                | **Supabase / 직접 구현** | Redis 미설정 시 TxQueue 한계. DataStore는 MongoDB·DynamoDB·Firestore·ScyllaDB·CouchDB 5종 지원이나, Realtime·GraphQL 부재로 부적합할 수 있음 |
+
+---
+
+## 9. 결론
+
+Entity Server는 **온프레미스 + 설정 중심 + payload 암호화**가 핵심인 내부 업무 API 서버 역할에서 경쟁 우위를 지닙니다.  
+특히 XChaCha20-Poly1305 row 암호화 + 훅 포함 완전 트랜잭션 + seq 체이닝 조합은 동급 오픈소스 제품에서 찾기 어렵습니다.
