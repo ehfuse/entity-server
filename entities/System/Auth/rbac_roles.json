@@ -1,0 +1,76 @@
+{
+    "name": "rbac_roles",
+    "description": "RBAC 역할 정의 예제",
+    "license_scope": false,
+    "index": {
+        "name": {
+            "comment": "역할 이름",
+            "required": true,
+            "unique": true
+        }
+    },
+    "types": {
+        "permissions": "text"
+    },
+    "hard_delete": true,
+    "reset_defaults": [
+        {
+            "name": "admin",
+            "description": "전체 권한 (모든 엔티티 CRUD + 관리)",
+            "permissions": ["*"]
+        },
+        {
+            "name": "editor",
+            "description": "읽기 + 쓰기 (생성/수정/삭제 가능)",
+            "permissions": [
+                "entity:meta",
+                "entity:validate",
+                "entity:read",
+                "entity:list",
+                "entity:count",
+                "entity:query",
+                "entity:create",
+                "entity:delete",
+                "entity:history",
+                "entity:rollback",
+                "admin:entities",
+                "admin:stats",
+                "admin:reindex"
+            ]
+        },
+        {
+            "name": "viewer",
+            "description": "읽기 전용",
+            "permissions": [
+                "entity:meta",
+                "entity:read",
+                "entity:list",
+                "entity:count",
+                "entity:query",
+                "admin:entities",
+                "admin:stats"
+            ]
+        },
+        {
+            "name": "auditor",
+            "description": "읽기 + history 조회 전용",
+            "permissions": [
+                "entity:read",
+                "entity:list",
+                "entity:history",
+                "admin:entities",
+                "admin:stats"
+            ]
+        },
+        {
+            "name": "user",
+            "description": "일반 사용자 (기본 CRUD)",
+            "permissions": [
+                "entity:meta",
+                "entity:read",
+                "entity:list",
+                "entity:count"
+            ]
+        }
+    ]
+}

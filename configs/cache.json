@@ -1,0 +1,22 @@
+{
+    "description": "전역 캐시 설정. driver는 memory | file | memcached(memcache) | redis 지원. 엔티티별 설정(cache)은 이 기본값을 override.",
+    "defaults": {
+        "enabled": true,
+        "driver": "memory",
+        "ttl_seconds": 60
+    },
+    "drivers": {
+        "file": {
+            "dir": ".cache/entity"
+        },
+        "memcached": {
+            "servers": ["127.0.0.1:11211"]
+        },
+        "redis": {
+            "addr": "127.0.0.1:6379",
+            "password": "",
+            "db": 0,
+            "prefix": "entity_cache:"
+        }
+    }
+}

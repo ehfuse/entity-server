@@ -1,0 +1,26 @@
+{
+    "name": "api_keys",
+    "license_scope": false,
+    "description": "API 키 및 HMAC 시크릿 관리",
+    "index": {
+        "key_value": {
+            "comment": "API 키 값 (해시 저장)",
+            "required": true,
+            "unique": true,
+            "hash": true
+        },
+        "enabled": {
+            "comment": "활성 여부",
+            "type": "bool",
+            "default": true
+        },
+        "user_seq": {
+            "comment": "발급 대상 사용자 seq (nullable, user 엔티티 참조)"
+        }
+    },
+    "types": {
+        "hmac_secret": "text",
+        "entities": "text"
+    },
+    "hard_delete": true
+}

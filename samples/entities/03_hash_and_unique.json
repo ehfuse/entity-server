@@ -1,0 +1,33 @@
+{
+    "name": "member",
+    "description": "hash & unique 예제 — 민감 필드 해시 저장 + 단일/복합 유니크",
+    "index": {
+        "email": {
+            "comment": "이메일 (고유 — 중복 불가)",
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "phone": {
+            "comment": "전화번호 (해시 저장 — 평문 노출 차단)",
+            "hash": true
+        },
+        "resident_id": {
+            "comment": "주민등록번호 앞 7자리 (해시 + 유니크 — 중복 가입 방지)",
+            "hash": true,
+            "unique": true
+        },
+        "nickname": {
+            "comment": "닉네임 (unique — 중복 불가)"
+        },
+        "org_seq": {
+            "comment": "소속 조직 seq"
+        },
+        "status": {
+            "comment": "상태",
+            "type": ["active", "inactive", "withdrawn"],
+            "default": "active"
+        }
+    },
+    "unique": [["org_seq", "nickname"]]
+}

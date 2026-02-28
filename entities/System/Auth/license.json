@@ -1,0 +1,36 @@
+{
+    "name": "license",
+    "description": "license Entity",
+    "index": {
+        "name": {
+            "comment": "라이선스명",
+            "required": true,
+            "unique": true
+        },
+        "contract_date": {
+            "comment": "계약일"
+        },
+        "expire_date": {
+            "comment": "만료일"
+        },
+        "status": {
+            "comment": "상태",
+            "type": ["active", "expired", "suspended"],
+            "default": "active"
+        }
+    },
+    "defaults": {
+        "max_users": 100
+    },
+    "types": {},
+    "reset_defaults": [
+        {
+            "name": "Trial License",
+            "contract_date": "2026-01-01",
+            "expire_date": "2026-12-31",
+            "status": "active",
+            "max_users": 10,
+            "contact_email": "trial@example.com"
+        }
+    ]
+}

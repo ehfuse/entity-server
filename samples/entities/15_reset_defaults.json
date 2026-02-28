@@ -1,0 +1,94 @@
+{
+    "name": "country",
+    "description": "reset_defaults 예제 — reset-all 실행 시 주요 국가 코드 자동 시딩",
+    "index": {
+        "code": {
+            "comment": "ISO 3166-1 alpha-2 국가 코드 (예: KR, US)",
+            "required": true,
+            "unique": true
+        },
+        "name_ko": {
+            "comment": "국가명 (한국어)"
+        },
+        "name_en": {
+            "comment": "국가명 (영어)"
+        },
+        "region": {
+            "comment": "대륙/지역",
+            "type": [
+                "asia",
+                "europe",
+                "americas",
+                "africa",
+                "oceania",
+                "middle_east"
+            ]
+        },
+        "phone_code": {
+            "comment": "국가 전화 코드 (예: +82)"
+        },
+        "is_active": {
+            "comment": "서비스 지원 여부 (is_* → TINYINT(1) 자동 추론)",
+            "default": true
+        }
+    },
+    "hard_delete": true,
+    "reset_defaults": [
+        {
+            "code": "KR",
+            "name_ko": "대한민국",
+            "name_en": "South Korea",
+            "region": "asia",
+            "phone_code": "+82",
+            "is_active": true
+        },
+        {
+            "code": "US",
+            "name_ko": "미국",
+            "name_en": "United States",
+            "region": "americas",
+            "phone_code": "+1",
+            "is_active": true
+        },
+        {
+            "code": "JP",
+            "name_ko": "일본",
+            "name_en": "Japan",
+            "region": "asia",
+            "phone_code": "+81",
+            "is_active": true
+        },
+        {
+            "code": "CN",
+            "name_ko": "중국",
+            "name_en": "China",
+            "region": "asia",
+            "phone_code": "+86",
+            "is_active": true
+        },
+        {
+            "code": "DE",
+            "name_ko": "독일",
+            "name_en": "Germany",
+            "region": "europe",
+            "phone_code": "+49",
+            "is_active": true
+        },
+        {
+            "code": "GB",
+            "name_ko": "영국",
+            "name_en": "United Kingdom",
+            "region": "europe",
+            "phone_code": "+44",
+            "is_active": true
+        },
+        {
+            "code": "SG",
+            "name_ko": "싱가포르",
+            "name_en": "Singapore",
+            "region": "asia",
+            "phone_code": "+65",
+            "is_active": true
+        }
+    ]
+}
