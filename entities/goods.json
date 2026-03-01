@@ -1,0 +1,32 @@
+{
+    "name": "goods",
+    "description": "goods Entity. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "index": {
+        "name": {
+            "comment": "상품명",
+            "required": true,
+            "unique": true
+        },
+        "category": {
+            "comment": "카테고리",
+            "type": ["전자제품", "가구", "생활용품"]
+        },
+        "price": {
+            "comment": "가격"
+        }
+    },
+    "reset_defaults": [
+        {
+            "name": "샘플 상품 A",
+            "category": "전자제품",
+            "price": 10000,
+            "stock": 50
+        },
+        {
+            "name": "샘플 상품 B",
+            "category": "가구",
+            "price": 50000,
+            "stock": 20
+        }
+    ]
+}

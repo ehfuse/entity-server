@@ -1,0 +1,59 @@
+{
+    "enabled": true,
+    "default": "barobill",
+    "workers": 2,
+    "queue_size": 100,
+    "dispatch_interval_sec": 10,
+    "max_retries": 3,
+    "providers": [
+        {
+            "driver": "barobill",
+            "cert_key": "${TAXINVOICE_CERT_KEY}",
+            "corp_num": "${TAXINVOICE_CORP_NUM}",
+            "user_id": "${TAXINVOICE_USER_ID}",
+            "api_endpoint": "https://barobill.co.kr/TAPI/TaxInvoiceService.asmx",
+            "timeout_sec": 30
+        },
+        {
+            "driver": "popbill",
+            "link_id": "${TAXINVOICE_LINK_ID}",
+            "secret_key": "${TAXINVOICE_SECRET_KEY}",
+            "corp_num": "${TAXINVOICE_CORP_NUM}",
+            "api_endpoint": "https://taxinvoice.linkhub.co.kr",
+            "timeout_sec": 30
+        },
+        {
+            "driver": "bolta",
+            "api_key": "${TAXINVOICE_API_KEY}",
+            "customer_key": "${TAXINVOICE_CUSTOMER_KEY}",
+            "api_endpoint": "https://xapi.bolta.io/v1",
+            "timeout_sec": 30
+        },
+        {
+            "driver": "smartbill",
+            "api_key": "${TAXINVOICE_API_KEY}",
+            "corp_num": "${TAXINVOICE_CORP_NUM}",
+            "api_endpoint": "https://nxapi.smartbill.co.kr",
+            "timeout_sec": 30
+        },
+        {
+            "driver": "esero",
+            "corp_num": "${TAXINVOICE_CORP_NUM}",
+            "cert_path": "/run/secrets/esero_cert.pfx",
+            "cert_pass": "${TAXINVOICE_CERT_PASS}",
+            "api_endpoint": "https://esero.go.kr/api/v1",
+            "timeout_sec": 60
+        }
+    ],
+    "nts": {
+        "taxation_option": 1,
+        "taxation_add_tax_allow": 0,
+        "tax_exemption_option": 1,
+        "tax_exemption_add_tax_allow": 0
+    },
+    "notify": ["log", "smtp", "alimtalk"],
+    "sync": {
+        "state_sync_interval_min": 10,
+        "max_list_days": 200
+    }
+}

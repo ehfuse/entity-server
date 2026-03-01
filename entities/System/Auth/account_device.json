@@ -1,0 +1,63 @@
+{
+    "name": "account_device",
+    "description": "계정 기기 정보 및 푸시 토큰 관리. JWT 인증 시 account_seq로 계정과 연결. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "index": {
+        "account_seq": {
+            "comment": "계정seq (JWT 인증 시 필수. HMAC 인증은 nullable)"
+        },
+        "id": {
+            "comment": "기기ID"
+        },
+        "push_enabled": {
+            "comment": "푸시 수신 허용",
+            "type": "bool",
+            "default": true
+        }
+    },
+    "unique": [
+        [
+            "id",
+            "account_seq"
+        ]
+    ],
+    "fields": {
+        "device_type": {
+            "comment": "기기유형",
+            "type": [
+                "mobile",
+                "tablet",
+                "desktop",
+                "watch"
+            ],
+            "default": "mobile"
+        },
+        "platform": {
+            "comment": "플랫폼",
+            "type": [
+                "android",
+                "ios",
+                "web",
+                "windows",
+                "macos",
+                "linux"
+            ]
+        },
+        "browser": {
+            "comment": "브라우저"
+        },
+        "browser_version": {
+            "comment": "브라우저버전"
+        },
+        "push_token": {
+            "comment": "푸시 디바이스 토큰",
+            "nullable": true
+        },
+        "last_login_time": {
+            "comment": "마지막로그인시각"
+        },
+        "last_ip_addr": {
+            "comment": "마지막IP주소"
+        }
+    }
+}

@@ -1,0 +1,148 @@
+{
+    "enabled": true,
+    "default": "local-main",
+    "max_file_size_mb": 20,
+    "storages": {
+        "local-main": {
+            "driver": "local",
+            "root": "./uploads"
+        },
+
+        "s3-aws": {
+            "driver": "s3",
+            "bucket": "my-entity-files",
+            "region": "ap-northeast-2",
+            "access_key": "${AWS_ACCESS_KEY_ID}",
+            "secret_key": "${AWS_SECRET_ACCESS_KEY}",
+            "prefix": "entity-files"
+        },
+
+        "s3-r2": {
+            "driver": "s3",
+            "bucket": "my-files",
+            "region": "auto",
+            "endpoint": "https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com",
+            "access_key": "${R2_ACCESS_KEY}",
+            "secret_key": "${R2_SECRET_KEY}",
+            "prefix": "",
+            "_comment": "Cloudflare R2 (S3 호환) — 이그레스 무료"
+        },
+
+        "s3-b2": {
+            "driver": "s3",
+            "bucket": "my-files",
+            "region": "us-west-004",
+            "endpoint": "https://s3.us-west-004.backblazeb2.com",
+            "access_key": "${B2_KEY_ID}",
+            "secret_key": "${B2_APP_KEY}",
+            "_comment": "Backblaze B2 (S3 호환) — S3 대비 1/4 가격"
+        },
+
+        "s3-wasabi": {
+            "driver": "s3",
+            "bucket": "my-files",
+            "region": "ap-northeast-2",
+            "endpoint": "https://s3.ap-northeast-2.wasabisys.com",
+            "access_key": "${WASABI_ACCESS_KEY}",
+            "secret_key": "${WASABI_SECRET_KEY}",
+            "_comment": "Wasabi (S3 호환) — 저가 hot storage"
+        },
+
+        "s3-do-spaces": {
+            "driver": "s3",
+            "bucket": "my-files",
+            "region": "sgp1",
+            "endpoint": "https://sgp1.digitaloceanspaces.com",
+            "access_key": "${DO_SPACES_KEY}",
+            "secret_key": "${DO_SPACES_SECRET}",
+            "_comment": "DigitalOcean Spaces (S3 호환)"
+        },
+
+        "s3-minio": {
+            "driver": "s3",
+            "bucket": "entity-files",
+            "region": "us-east-1",
+            "endpoint": "http://minio.internal:9000",
+            "access_key": "minioadmin",
+            "secret_key": "minioadmin",
+            "_comment": "MinIO (S3 호환) — 자체 호스팅"
+        },
+
+        "s3-ncloud": {
+            "driver": "s3",
+            "bucket": "my-files",
+            "region": "kr-standard",
+            "endpoint": "https://kr.object.ncloudstorage.com",
+            "access_key": "${NCLOUD_ACCESS_KEY}",
+            "secret_key": "${NCLOUD_SECRET_KEY}",
+            "_comment": "Naver Cloud Object Storage (S3 호환)"
+        },
+
+        "azure-example": {
+            "driver": "azure",
+            "container": "files",
+            "account_name": "${AZURE_STORAGE_ACCOUNT}",
+            "account_key": "${AZURE_STORAGE_KEY}",
+            "prefix": "entity-files"
+        },
+
+        "gcs-example": {
+            "driver": "gcs",
+            "bucket": "my-entity-files",
+            "credentials_file": "./configs/keys/gcp-sa.json",
+            "prefix": "entity-files",
+            "_comment": "GKE/Cloud Run에서는 credentials_file 불필요 (Workload Identity)"
+        },
+
+        "sftp-example": {
+            "driver": "sftp",
+            "host": "nas.company.com",
+            "port": 22,
+            "user": "backup",
+            "private_key_file": "./configs/keys/backup_rsa",
+            "root": "/volume1/entity-files",
+            "_comment": "NAS/온프레미스 서버 연동"
+        },
+
+        "swift-kt": {
+            "driver": "swift",
+            "auth_url": "https://ssproxy.ucloudbiz.olleh.com/identity/v3",
+            "container": "my-files",
+            "user": "${KT_USER}",
+            "password": "${KT_PASSWORD}",
+            "tenant_name": "${KT_TENANT}",
+            "domain_name": "Default",
+            "region": "kr1",
+            "_comment": "KT Cloud Storage (OpenStack Swift)"
+        }
+    },
+    "thumbnail": {
+        "enabled": true,
+        "auto_orient": true,
+        "sizes": {
+            "sm": {
+                "width": 160,
+                "height": 160
+            },
+            "md": {
+                "width": 480,
+                "height": 480
+            },
+            "lg": {
+                "width": 1024,
+                "height": 1024
+            }
+        },
+        "quality": 85
+    },
+    "quota": {
+        "default_limit_gb": 0,
+        "threshold_percent": 80,
+        "notify": ["log", "smtp"]
+    },
+    "gc": {
+        "enabled": true,
+        "orphan_threshold_hours": 24,
+        "cron": "0 3 * * *"
+    }
+}

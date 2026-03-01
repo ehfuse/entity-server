@@ -1,0 +1,54 @@
+{
+    "enabled": true,
+    "default": "aligo",
+    "sender": "01012345678",
+    "workers": 2,
+    "queue_size": 200,
+    "dispatch_interval_sec": 5,
+    "max_retries": 3,
+    "auto_lms": true,
+    "lms_threshold_bytes": 80,
+    "providers": {
+        "aligo": {
+            "driver": "aligo",
+            "api_key": "${ALIGO_API_KEY}",
+            "user_id": "${ALIGO_USER_ID}",
+            "sender": "01012345678"
+        },
+        "solapi": {
+            "driver": "solapi",
+            "api_key": "${SOLAPI_API_KEY}",
+            "api_secret": "${SOLAPI_API_SECRET}",
+            "sender": "01012345678"
+        },
+        "ppurio": {
+            "driver": "ppurio",
+            "account": "${PPURIO_ACCOUNT}",
+            "api_key": "${PPURIO_API_KEY}",
+            "sender": "01012345678"
+        },
+        "nhn": {
+            "driver": "nhn_cloud",
+            "app_key": "${NHN_SMS_APP_KEY}",
+            "secret_key": "${NHN_SMS_SECRET_KEY}",
+            "sender": "01012345678"
+        },
+        "aws": {
+            "driver": "aws_sns",
+            "region": "ap-northeast-2",
+            "access_key": "${AWS_ACCESS_KEY}",
+            "secret_key": "${AWS_SECRET_KEY}"
+        }
+    },
+    "rate_limit": {
+        "per_number_per_minute": 5,
+        "per_minute": 60,
+        "per_hour": 500
+    },
+    "verification": {
+        "code_length": 6,
+        "ttl_sec": 180,
+        "max_attempts": 5,
+        "cooldown_sec": 60
+    }
+}

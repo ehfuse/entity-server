@@ -1,0 +1,88 @@
+{
+    "name": "pg_order",
+    "description": "PG 결제 주문 엔티티. 결제 요청/승인/취소 상태를 추적합니다. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "index": {
+        "order_id": {
+            "type": "string",
+            "required": true,
+            "unique": true,
+            "comment": "고유 주문번호 (6~64자, [a-zA-Z0-9_-])"
+        },
+        "status": {
+            "type": [
+                "created",
+                "ready",
+                "in_progress",
+                "waiting",
+                "done",
+                "canceled",
+                "partial_canceled",
+                "aborted",
+                "expired"
+            ],
+            "default": "created",
+            "comment": "결제 상태"
+        },
+        "payment_key": {
+            "type": "string",
+            "comment": "PG사 결제 키 (승인 후 할당)"
+        },
+        "provider": {
+            "type": "string",
+            "required": true,
+            "comment": "PG 프로바이더 키 (toss_payments, kcp, inicis 등)"
+        },
+        "method": {
+            "type": "string",
+            "comment": "결제수단 (card, virtual_account, transfer, phone, easy_pay)"
+        },
+        "amount": {
+            "type": "integer",
+            "required": true,
+            "comment": "총 결제 금액 (원)"
+        },
+        "balance_amount": {
+            "type": "integer",
+            "comment": "취소 가능 잔액"
+        },
+        "currency": {
+            "type": "string",
+            "default": "KRW",
+            "comment": "통화 코드 (ISO 4217)"
+        },
+        "account_seq": {
+            "type": "integer",
+            "comment": "구매자 계정 seq (로그인 사용자)"
+        },
+        "customer_name": {
+            "type": "string",
+            "comment": "구매자명"
+        },
+        "customer_email": {
+            "type": "string",
+            "comment": "구매자 이메일"
+        }
+    },
+    "fields": {
+        "order_name": { "comment": "주문 상품명 (예: '토스 티셔츠 외 2건')" },
+        "requested_time": { "comment": "결제 요청 시각 (ISO 8601)" },
+        "approved_time": { "comment": "결제 승인 시각 (ISO 8601)" },
+        "card_info": {
+            "comment": "카드 결제 정보 JSON (마스킹된 카드번호, 카드타입 등)"
+        },
+        "virtual_account_info": {
+            "comment": "가상계좌 정보 JSON (계좌번호, 은행, 입금기한)"
+        },
+        "easy_pay_info": {
+            "comment": "간편결제 정보 JSON (provider, amount, discountAmount)"
+        },
+        "receipt_url": { "comment": "영수증 URL" },
+        "checkout_url": { "comment": "결제창 URL" },
+        "failure_code": { "comment": "실패 에러 코드" },
+        "failure_message": { "comment": "실패 에러 메시지" },
+        "metadata": {
+            "comment": "상점 커스텀 데이터 JSON (최대 5개 key-value)"
+        },
+        "pg_raw_response": { "comment": "PG사 원본 응답 JSON (디버깅용)" }
+    }
+}

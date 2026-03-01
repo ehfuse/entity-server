@@ -1,0 +1,46 @@
+{
+    "name": "file_backup_log",
+    "description": "파일 백업 작업 로그. 스토리지 간 백업 동기화 이력을 기록합니다. 서버 내부 백업 고루틴이 자동 기록. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "history": false,
+    "hard_delete": true,
+    "read_only": true,
+    "compress": true,
+    "index": {
+        "started_time": {
+            "comment": "백업 작업 시작 시각"
+        },
+        "status": {
+            "comment": "작업 상태",
+            "type": ["running", "completed", "partial", "failed"],
+            "default": "running",
+            "required": true
+        }
+    },
+    "fields": {
+        "error_count": {
+            "comment": "실패 파일 수"
+        },
+        "error_message": {
+            "comment": "실패 시 오류 메시지 요약"
+        },
+        "exec_instance": {
+            "comment": "작업을 실행한 서버 인스턴스 식별자 (hostname 등)"
+        },
+        "file_count": {
+            "comment": "처리된 파일 수"
+        },
+        "finished_time": {
+            "comment": "백업 작업 완료 시각"
+        },
+        "source_key": {
+            "comment": "원본 스토리지 키 (storage.json storages 맵의 키)"
+        },
+        "target_key": {
+            "comment": "백업 대상 스토리지 키"
+        },
+        "total_bytes": {
+            "comment": "전송된 총 바이트 수"
+        }
+    }
+}

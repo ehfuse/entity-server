@@ -1,0 +1,28 @@
+{
+    "_comment": "개인정보처리방침 설정 예시. 각 모듈은 독립적으로 enabled 설정 가능. 운영 적용 전 docs/security/privacy-policy-guide.md 를 반드시 확인하세요.",
+
+    "dormancy": {
+        "_comment": "휴면 계정 전환 정책. 마지막 로그인 기준으로 dormancy_days 경과 시 휴면 처리.",
+        "enabled": false,
+        "dormancy_days": 365,
+        "warning_days": [30, 7],
+        "email_template": "dormancy_warning",
+        "check_interval_hours": 24
+    },
+
+    "data_retention": {
+        "_comment": "개인정보 보존 기간 정책. action: anonymize(익명화) | delete(삭제).",
+        "enabled": false,
+        "retention_days": 1095,
+        "action": "anonymize",
+        "check_interval_hours": 24
+    },
+
+    "password_policy": {
+        "_comment": "비밀번호 만료/재사용 금지 정책. 복잡도 규칙은 password.json의 password_policy를 공통 사용.",
+        "enabled": false,
+        "max_age_days": 180,
+        "warning_days": [14, 7],
+        "email_template": "account/password_expiry_warning"
+    }
+}

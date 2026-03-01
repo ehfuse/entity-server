@@ -1,0 +1,95 @@
+{
+    "name": "identity_verification",
+    "description": "휴대폰 본인인증 요청 및 결과 저장. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "hard_delete": false,
+    "compress": true,
+    "index": {
+        "request_id": {
+            "type": "string",
+            "required": true,
+            "unique": true,
+            "comment": "인증 요청 고유 ID (32바이트 hex)"
+        },
+        "status": {
+            "type": ["pending", "verified", "failed", "expired"],
+            "default": "pending"
+        },
+        "purpose": {
+            "type": [
+                "signup",
+                "find_account",
+                "password_reset",
+                "adult_verify",
+                "identity_change"
+            ],
+            "required": true
+        },
+        "provider": {
+            "type": ["nice", "kmc", "danal"],
+            "required": true
+        }
+    },
+    "fields": {
+        "ci_hash": {
+            "type": "string",
+            "comment": "CI의 SHA-256 해시 (중복 조회용)"
+        },
+        "di": {
+            "type": "string",
+            "comment": "DI 원문 (암호화 저장)"
+        },
+        "name": {
+            "type": "string",
+            "comment": "인증된 실명"
+        },
+        "birth_date": {
+            "type": "string",
+            "comment": "생년월일 (YYYYMMDD)"
+        },
+        "gender": {
+            "type": "string",
+            "comment": "성별 (M/F)"
+        },
+        "carrier": {
+            "type": "string",
+            "comment": "통신사 코드"
+        },
+        "phone": {
+            "type": "string",
+            "comment": "인증 휴대폰 번호"
+        },
+        "nationality": {
+            "type": "string",
+            "comment": "내/외국인 (local/foreign)"
+        },
+        "account_seq": {
+            "type": "int",
+            "comment": "연결된 계정 seq (인증 완료 후 설정)"
+        },
+        "ip_address": {
+            "type": "string",
+            "comment": "요청 IP 주소"
+        },
+        "user_agent": {
+            "type": "string",
+            "comment": "요청 User-Agent"
+        },
+        "verified_at": {
+            "type": "string",
+            "comment": "인증 완료 시각 (RFC3339)"
+        },
+        "expires_at": {
+            "type": "string",
+            "comment": "요청 만료 시각 (RFC3339)"
+        },
+        "error_message": {
+            "type": "string",
+            "comment": "실패 시 에러 메시지"
+        },
+        "raw_response": {
+            "type": "json",
+            "comment": "중계사 원본 응답 (디버깅용, 암호화)"
+        }
+    }
+}

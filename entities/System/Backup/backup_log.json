@@ -1,0 +1,62 @@
+{
+    "name": "backup_log",
+    "description": "백업 작업 이력. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history": false,
+    "compress": true,
+    "index": {
+        "backup_type": {
+            "type": [
+                "data",
+                "file",
+                "full"
+            ],
+            "required": true
+        },
+        "finished_time": {},
+        "started_time": {},
+        "status": {
+            "type": [
+                "running",
+                "completed",
+                "partial",
+                "failed"
+            ],
+            "required": true
+        }
+    },
+    "fields": {
+        "session_id": {
+            "description": "백업 세션 ID (타임스탬프)"
+        },
+        "db_groups": {
+            "type": "varchar(500)",
+            "description": "백업된 DB 그룹 목록 (JSON)"
+        },
+        "entity_count": {
+            "description": "백업된 엔티티 수"
+        },
+        "total_records": {
+            "description": "총 레코드 수"
+        },
+        "total_bytes": {
+            "description": "총 바이트"
+        },
+        "error_count": {
+            "description": "에러 수"
+        },
+        "error_message": {
+            "type": "varchar(2000)",
+            "nullable": true,
+            "description": "에러 상세"
+        },
+        "exec_instance": {
+            "description": "실행 서버 인스턴스 ID"
+        },
+        "manifest_path": {
+            "description": "manifest.json 경로"
+        }
+    },
+    "read_only": true
+}

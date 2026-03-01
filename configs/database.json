@@ -1,0 +1,27 @@
+{
+    "default": "development",
+    "groups": {
+        "development": {
+            "driver": "mysql",
+            "host": "${DB_HOST_DEVELOPMENT}",
+            "port": "${DB_PORT_DEVELOPMENT}",
+            "database": "${DB_NAME_DEVELOPMENT}",
+            "user": "${DB_USER_DEVELOPMENT}",
+            "password": "${DB_PASSWORD_DEVELOPMENT}",
+            "maxOpenConns": 20,
+            "maxIdleConns": 10,
+            "connMaxLifetimeSec": 3600
+        },
+        "production": {
+            "driver": "mysql",
+            "host": "${DB_HOST_PRODUCTION}",
+            "port": "${DB_PORT_PRODUCTION}",
+            "database": "${DB_NAME_PRODUCTION}",
+            "user": "${DB_USER_PRODUCTION}",
+            "password": "${DB_PASSWORD_PRODUCTION}",
+            "maxOpenConns": 50,
+            "maxIdleConns": 25,
+            "connMaxLifetimeSec": 3600
+        }
+    }
+}

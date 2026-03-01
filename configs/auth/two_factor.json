@@ -1,0 +1,12 @@
+{
+    "enabled": false,
+    "issuer": "EntityServer",
+    "enforce_roles": [],
+    "code_digits": 6,
+    "period_sec": 30,
+    "skew": 1,
+    "recovery_code_count": 10,
+    "setup_token_ttl_sec": 300,
+    "max_verify_attempts": 5,
+    "verify_lockout_sec": 300
+}

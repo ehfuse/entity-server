@@ -1,0 +1,45 @@
+{
+    "name": "pg_cancel",
+    "description": "PG 결제 취소 이력 엔티티. 부분/전액 취소를 기록합니다. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "read_only": true,
+    "index": {
+        "order_seq": {
+            "type": "integer",
+            "required": true,
+            "comment": "pg_order.seq 참조"
+        },
+        "order_id": {
+            "type": "string",
+            "required": true,
+            "comment": "주문번호 (조회 편의)"
+        },
+        "cancel_amount": {
+            "type": "integer",
+            "required": true,
+            "comment": "취소 금액"
+        },
+        "cancel_reason": {
+            "type": "string",
+            "required": true,
+            "comment": "취소 사유 (최대 200자)"
+        },
+        "cancel_status": {
+            "type": ["done", "failed"],
+            "default": "done",
+            "comment": "취소 처리 상태"
+        },
+        "transaction_key": {
+            "type": "string",
+            "comment": "PG사 취소 거래 키"
+        }
+    },
+    "fields": {
+        "canceled_time": { "comment": "취소 시각 (ISO 8601)" },
+        "refundable_amount": { "comment": "취소 후 환불 가능 잔액" },
+        "tax_free_amount": { "comment": "취소된 금액 중 면세 금액" },
+        "receipt_key": { "comment": "현금영수증 키 (해당 시)" },
+        "refund_account": {
+            "comment": "환불 계좌 정보 JSON (가상계좌 취소 시)"
+        }
+    }
+}

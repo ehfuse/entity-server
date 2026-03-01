@@ -1,0 +1,37 @@
+{
+    "enabled": false,
+    "default": "toss_payments",
+    "webhook_secret": "${PG_WEBHOOK_SECRET}",
+    "order_id_prefix": "ORD",
+    "success_url": "/payment/success",
+    "fail_url": "/payment/fail",
+    "webhook_url": "/v1/pg/webhook",
+    "amount_limit": {
+        "min": 100,
+        "max": 10000000
+    },
+    "workers": 2,
+    "providers": [
+        {
+            "driver": "toss_payments",
+            "client_key": "${TOSS_CLIENT_KEY}",
+            "secret_key": "${TOSS_SECRET_KEY}",
+            "api_url": "https://api.tosspayments.com",
+            "api_version": "2022-11-16"
+        },
+        {
+            "_comment": "NHN KCP (Phase 2)",
+            "driver": "kcp",
+            "site_cd": "${KCP_SITE_CD}",
+            "secret_key": "${KCP_SECRET_KEY}",
+            "api_url": "https://api.pay.kcp.co.kr"
+        },
+        {
+            "_comment": "KG 이니시스 (Phase 2)",
+            "driver": "inicis",
+            "store_id": "${INICIS_STORE_ID}",
+            "sign_key": "${INICIS_SIGN_KEY}",
+            "api_url": "https://api.inicis.com"
+        }
+    ]
+}

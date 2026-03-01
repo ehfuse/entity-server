@@ -1,0 +1,75 @@
+{
+    "_comment": "알림톡(Kakao Alimtalk) 설정 예시 — 4개 프로바이더 전체 구성",
+    "enabled": false,
+    "default": "aligo",
+    "sender_key": "YOUR_KAKAO_SENDER_KEY",
+    "workers": 2,
+    "dispatch_interval_sec": 5,
+    "queue_size": 200,
+    "max_retries": 3,
+    "fallback": {
+        "enabled": true,
+        "sender": "01012345678",
+        "type": "sms"
+    },
+    "template_cache_ttl_sec": 300,
+    "providers": {
+        "aligo": {
+            "driver": "aligo",
+            "api_key": "YOUR_ALIGO_API_KEY",
+            "user_id": "YOUR_ALIGO_USER_ID",
+            "sender_key": "YOUR_KAKAO_SENDER_KEY"
+        },
+        "solapi": {
+            "driver": "solapi",
+            "api_key": "YOUR_SOLAPI_API_KEY",
+            "api_secret": "YOUR_SOLAPI_API_SECRET",
+            "pf_id": "YOUR_SOLAPI_PF_ID",
+            "sender_key": "YOUR_KAKAO_SENDER_KEY"
+        },
+        "ppurio": {
+            "driver": "ppurio",
+            "account": "YOUR_PPURIO_ACCOUNT",
+            "api_key": "YOUR_PPURIO_API_KEY",
+            "sender_key": "YOUR_KAKAO_SENDER_KEY"
+        },
+        "nhn": {
+            "driver": "nhn_cloud",
+            "app_key": "YOUR_NHN_APP_KEY",
+            "secret_key": "YOUR_NHN_SECRET_KEY",
+            "sender_key": "YOUR_KAKAO_SENDER_KEY"
+        }
+    },
+    "templates": [
+        {
+            "code": "AUTH_001",
+            "description": "인증번호 발송",
+            "variables": ["code", "minutes"],
+            "fallback_sms": true
+        },
+        {
+            "code": "ORDER_001",
+            "description": "주문 접수 확인",
+            "variables": ["name", "order_no", "amount"],
+            "fallback_sms": true
+        },
+        {
+            "code": "DELIVERY_001",
+            "description": "배송 시작 알림",
+            "variables": ["name", "tracking_no", "courier"],
+            "fallback_sms": true
+        },
+        {
+            "code": "PAYMENT_001",
+            "description": "결제 완료",
+            "variables": ["name", "amount", "method"],
+            "fallback_sms": false
+        },
+        {
+            "code": "NOTICE_001",
+            "description": "일반 공지",
+            "variables": ["title", "content"],
+            "fallback_sms": false
+        }
+    ]
+}

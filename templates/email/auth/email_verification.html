@@ -1,0 +1,18 @@
+<h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1a1a2e;">이메일 인증</h2>
+<p style="margin: 0 0 24px; font-size: 15px; color: #555; line-height: 1.6;">
+    아래 인증 코드를 입력하여 이메일 주소를 인증하세요.
+</p>
+<div style="text-align: center; margin: 0 0 28px;">
+    <div style="display: inline-block; padding: 18px 40px; background-color: #f4f4f7; border-radius: 8px; border: 1px solid #e0e0e0;">
+        <span style="font-size: 32px; font-weight: 700; letter-spacing: 10px; color: #1a1a2e; font-family: 'Courier New', Courier, monospace;">${code|------}</span>
+    </div>
+</div>
+<p style="margin: 0 0 8px; font-size: 14px; color: #888; line-height: 1.6;">
+    이 코드는 <strong>${expires_in|5분}</strong> 동안 유효합니다.
+</p>
+<p style="margin: 0 0 8px; font-size: 13px; color: #aaa; line-height: 1.6;">
+    인증 대상 이메일: <strong>${email|}</strong>
+</p>
+<p style="margin: 0; font-size: 13px; color: #aaa; line-height: 1.6;">
+    본인이 요청하지 않은 경우 이 이메일을 무시하세요.
+</p>

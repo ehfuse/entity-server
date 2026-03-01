@@ -1,0 +1,26 @@
+{
+    "name": "sms_log",
+    "description": "SMS/LMS/MMS 발송 이력 로그. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history": false,
+    "read_only": true,
+    "compress": true,
+    "index": {
+        "status": { "type": ["pending", "processing", "sent", "failed"] },
+        "msg_type": { "type": ["sms", "lms", "mms"] },
+        "receiver": { "type": "string" },
+        "sms_msg_seq": { "comment": "sms_msg 참조 seq" }
+    },
+    "fields": {
+        "sender": { "type": "string" },
+        "subject": { "type": "string" },
+        "content": { "type": "string" },
+        "image_url": { "type": "string", "comment": "MMS 이미지 URL" },
+        "provider": { "type": "string" },
+        "provider_msg_id": { "type": "string" },
+        "error_message": { "type": "string" },
+        "retry_count": { "type": "uint" },
+        "sent_at": { "type": "string" }
+    }
+}

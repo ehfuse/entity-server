@@ -1,0 +1,27 @@
+{
+    "enabled": false,
+    "default": "nice",
+    "request_ttl_sec": 300,
+    "result_ttl_sec": 600,
+    "return_url": "/v1/identity/callback",
+    "success_redirect_url": "/identity/complete",
+    "failure_redirect_url": "/identity/error",
+    "duplicate_ci_check": true,
+    "providers": [
+        {
+            "driver": "nice",
+            "site_code": "${NICE_SITE_CODE}",
+            "site_password": "${NICE_SITE_PASSWORD}",
+            "client_id": "${NICE_CLIENT_ID}",
+            "client_secret": "${NICE_CLIENT_SECRET}",
+            "product_id": "2101979031",
+            "api_url": "https://nice.checkplus.co.kr",
+            "token_url": "https://svc.niceapi.co.kr:22001/digital/niceid/oauth/oauth/token",
+            "crypto_url": "https://svc.niceapi.co.kr:22001/digital/niceid/api/v1.0/common/crypto/token"
+        }
+    ],
+    "rate_limit": {
+        "per_ip_per_hour": 10,
+        "per_account_per_day": 5
+    }
+}

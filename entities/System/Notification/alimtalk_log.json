@@ -1,0 +1,45 @@
+{
+    "name": "alimtalk_log",
+    "description": "알림톡 발송 로그 — 워커가 소비하는 DB 큐 역할을 합니다. 사용자 환경에 맞게 index·fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "read_only": true,
+    "compress": true,
+    "index": {
+        "status": {
+            "type": [
+                "pending",
+                "processing",
+                "sent",
+                "delivered",
+                "failed",
+                "expired"
+            ],
+            "default": "pending",
+            "comment": "발송 상태 (delivered = 프로바이더 수신 확인)"
+        },
+        "template_code": {
+            "comment": "카카오 알림톡 템플릿 코드",
+            "required": true
+        },
+        "receiver": {
+            "comment": "수신자 전화번호",
+            "required": true
+        },
+        "alimtalk_msg_seq": {
+            "comment": "alimtalk_msg 참조 seq"
+        }
+    },
+    "fields": {
+        "template_name": { "comment": "내부 템플릿 이름" },
+        "variables_json": { "type": "text", "comment": "템플릿 변수 JSON" },
+        "provider": { "comment": "사용 프로바이더" },
+        "provider_msg_id": { "comment": "프로바이더 메시지 ID" },
+        "error_message": { "type": "text", "comment": "오류 메시지" },
+        "retry_count": { "type": "uint", "default": 0 },
+        "sent_at": { "type": "string" },
+        "delivered_at": {
+            "type": "string",
+            "comment": "프로바이더 수신 확인 시각"
+        }
+    }
+}
