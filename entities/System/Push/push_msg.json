@@ -1,0 +1,56 @@
+{
+    "name": "push_msg",
+    "description": "시스템 푸시 트리거 엔티티. insert 시 push hook로 비동기 발송. account_seq(JWT) 또는 device_id(HMAC) 중 하나 필수. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "fields": {
+        "account_seq": {
+            "index": true,
+            "comment": "수신자 account seq (JWT 인증 시 필수. HMAC 인증은 device_id 사용)",
+            "required": true
+        },
+        "device_id": {
+            "index": true,
+            "comment": "대상 디바이스 ID (HMAC 인증 시. 기기단위로 account 없이 푸시 발송)",
+            "type": "varchar(255)"
+        },
+        "title": {
+            "index": true,
+            "comment": "푸시 제목",
+            "required": true
+        },
+        "message": {
+            "comment": "푸시 본문",
+            "nullable": true
+        },
+        "ref_entity": {
+            "comment": "참조 엔티티명",
+            "nullable": true
+        },
+        "ref_seq": {
+            "comment": "참조 레코드 seq",
+            "nullable": true
+        },
+        "msg_data": {
+            "comment": "추가 데이터(JSON 문자열)",
+            "type": "varchar(2000)",
+            "nullable": true
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "push",
+                "target_account_seq": "account_seq",
+                "target_device_id": "device_id",
+                "comment": "account_seq 있으면 계정 기반 발송, 없으면 device_id 기반 발송",
+                "title": "${new.title}",
+                "push_body": "${new.message}",
+                "push_data": {
+                    "push_msg_seq": "${new.seq}",
+                    "ref_entity": "${new.ref_entity}",
+                    "ref_seq": "${new.ref_seq}",
+                    "msg_data": "${new.msg_data}"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,74 @@
+{
+    "name": "account_oauth",
+    "description": "소셜 로그인 OAuth 프로바이더 연동 정보. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "hard_delete": true,
+    "fields": {
+        "account_seq": {
+            "index": true,
+            "required": true,
+            "comment": "계정 seq"
+        },
+        "provider": {
+            "index": true,
+            "type": [
+                "google",
+                "github",
+                "naver",
+                "kakao",
+                "apple"
+            ],
+            "required": true
+        },
+        "provider_id": {
+            "index": true,
+            "type": "string",
+            "required": true,
+            "comment": "프로바이더 고유 사용자 ID"
+        },
+        "status": {
+            "index": true,
+            "type": [
+                "active",
+                "unlinked"
+            ],
+            "default": "active"
+        },
+        "email": {
+            "type": "email",
+            "comment": "프로바이더에서 제공한 이메일"
+        },
+        "name": {
+            "type": "string",
+            "comment": "프로바이더에서 제공한 이름"
+        },
+        "profile_image": {
+            "type": "string",
+            "comment": "프로필 이미지 URL"
+        },
+        "access_token": {
+            "type": "string",
+            "comment": "OAuth access token (암호화 저장)"
+        },
+        "refresh_token": {
+            "type": "string",
+            "comment": "OAuth refresh token (암호화 저장)"
+        },
+        "token_expires_at": {
+            "type": "string",
+            "comment": "access token 만료 시각 (RFC3339)"
+        },
+        "raw": {
+            "type": "json",
+            "comment": "프로바이더 원본 응답 (디버깅용)"
+        },
+        "linked_at": {
+            "type": "string",
+            "comment": "연결 시각"
+        },
+        "unlinked_at": {
+            "type": "string",
+            "comment": "연결 해제 시각"
+        }
+    }
+}

@@ -1,0 +1,202 @@
+{
+    "name": "account",
+    "description": "JWT 로그인/인증용 계정 정보. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "fields": {
+        "email": {
+            "index": true,
+            "hash": true,
+            "comment": "이메일",
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "rbac_role": {
+            "index": true,
+            "comment": "엔티티 접근 역할",
+            "type": ["admin", "editor", "viewer", "auditor", "user"],
+            "default": "user"
+        },
+        "status": {
+            "index": true,
+            "comment": "계정 상태",
+            "type": ["active", "inactive", "blocked", "dormant"],
+            "default": "active"
+        },
+        "user_seq": {
+            "index": true,
+            "comment": "사용자번호"
+        },
+        "max_session_cnt": {
+            "type": "uint"
+        },
+        "has_password": {
+            "type": "bool",
+            "comment": "비밀번호 설정 여부 (소셜 전용 계정 구분)"
+        },
+        "last_login_time": {
+            "comment": "마지막 로그인 시각 (휴면 판단 기준)"
+        },
+        "passwd_changed_time": {
+            "comment": "마지막 비밀번호 변경 시각 (만료 정책 기준)"
+        },
+        "temp_password_hash": {
+            "type": "varchar(128)",
+            "comment": "임시 비밀번호 해시 (비밀번호 초기화 요청 시 발급)"
+        },
+        "temp_password_issued_time": {
+            "comment": "임시 비밀번호 발급 시각"
+        },
+        "force_password_change": {
+            "type": "bool",
+            "default": false,
+            "comment": "다음 로그인 시 비밀번호 변경 강제"
+        },
+        "name": {
+            "no_store": true,
+            "comment": "가입 요청 시 전달되는 이름. account에는 저장되지 않고 after_insert 훅(user 엔티티 생성 등)에서만 사용됩니다."
+        },
+        "phone": {
+            "no_store": true,
+            "comment": "가입 요청 시 전달되는 전화번호. no_store."
+        },
+        "birth_date": {
+            "no_store": true,
+            "comment": "가입 요청 시 전달되는 생년월일. no_store."
+        },
+        "gender": {
+            "no_store": true,
+            "comment": "가입 요청 시 전달되는 성별. no_store."
+        },
+        "profile_image": {
+            "no_store": true,
+            "comment": "가입 요청 시 전달되는 프로필 이미지. no_store."
+        }
+    },
+    "reset_defaults": [
+        {
+            "email": "admin1@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "admin12345",
+            "rbac_role": "admin",
+            "status": "active"
+        },
+        {
+            "email": "admin2@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "admin12345",
+            "rbac_role": "admin",
+            "status": "active"
+        },
+        {
+            "email": "admin3@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "admin12345",
+            "rbac_role": "admin",
+            "status": "active"
+        },
+        {
+            "email": "test1@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "test12345",
+            "rbac_role": "user",
+            "status": "active"
+        },
+        {
+            "email": "test2@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "test12345",
+            "rbac_role": "user",
+            "status": "active"
+        },
+        {
+            "email": "test3@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "test12345",
+            "rbac_role": "user",
+            "status": "active"
+        },
+        {
+            "email": "test4@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "test12345",
+            "rbac_role": "user",
+            "status": "active"
+        },
+        {
+            "email": "test5@${DEFAULT_EMAIL_DOMAIN}",
+            "passwd": "test12345",
+            "rbac_role": "user",
+            "status": "active"
+        }
+    ],
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${new.seq}", "INSERT", "${new.email}"],
+                "required": true
+            },
+            {
+                "_comment": "가입 시 user 엔티티 자동 생성. enabled: true로 바꾸면 활성화됩니다. assign_seq_to로 account.user_seq에 자동 반영됩니다.",
+                "type": "submit",
+                "enabled": false,
+                "entity": "user",
+                "data": {
+                    "account_seq": "${new.seq}",
+                    "name": "${new.name}",
+                    "phone": "${new.phone}",
+                    "birth_date": "${new.birth_date}",
+                    "gender": "${new.gender}",
+                    "profile_image": "${new.profile_image}"
+                },
+                "assign_seq_to": "user_seq"
+            }
+        ],
+        "after_update": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${new.seq}", "UPDATE", "${new.email}"],
+                "required": true
+            },
+            {
+                "_comment": "계정 업데이트 시 user 프로필 동기화. enabled: true로 바꾸면 활성화됩니다.",
+                "type": "submit",
+                "enabled": false,
+                "entity": "user",
+                "match": {
+                    "account_seq": "${new.seq}"
+                },
+                "data": {
+                    "name": "${new.name}",
+                    "phone": "${new.phone}",
+                    "birth_date": "${new.birth_date}",
+                    "gender": "${new.gender}",
+                    "profile_image": "${new.profile_image}"
+                }
+            }
+        ],
+        "after_delete": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": ["${old.seq}", "DELETE", "${old.email}"],
+                "required": true
+            }
+        ],
+        "after_get": [
+            {
+                "type": "entity",
+                "entity": "user",
+                "action": "find",
+                "conditions": {
+                    "seq": "${new.user_seq}"
+                },
+                "assign_to": "user_profile"
+            },
+            {
+                "type": "entity",
+                "entity": "account_device",
+                "action": "list",
+                "conditions": {
+                    "account_seq": "${new.seq}"
+                },
+                "assign_to": "devices"
+            }
+        ]
+    }
+}

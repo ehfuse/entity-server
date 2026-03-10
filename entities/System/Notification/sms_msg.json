@@ -1,0 +1,82 @@
+{
+    "name": "sms_msg",
+    "description": "SMS/LMS/MMS 발송 트리거 엔티티. insert 시 sms hook으로 비동기 발송. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history": false,
+    "read_only": true,
+    "fields": {
+        "status": {
+            "index": true,
+            "type": [
+                "queued",
+                "sent",
+                "failed"
+            ],
+            "default": "queued"
+        },
+        "msg_type": {
+            "index": true,
+            "type": [
+                "sms",
+                "lms",
+                "mms"
+            ],
+            "default": "sms"
+        },
+        "receiver": {
+            "index": true,
+            "hash": true,
+            "type": "string",
+            "required": true,
+            "comment": "수신 전화번호"
+        },
+        "sender": {
+            "type": "string",
+            "comment": "발신번호"
+        },
+        "subject": {
+            "type": "string",
+            "comment": "LMS/MMS 제목 (SMS는 미사용)"
+        },
+        "content": {
+            "type": "string",
+            "comment": "메시지 본문"
+        },
+        "image_url": {
+            "type": "string",
+            "comment": "MMS 이미지 URL"
+        },
+        "provider": {
+            "type": "string",
+            "comment": "발송 프로바이더 키"
+        },
+        "provider_msg_id": {
+            "type": "string",
+            "comment": "프로바이더 메시지 ID"
+        },
+        "ref_entity": {
+            "type": "string"
+        },
+        "ref_seq": {
+            "type": "int"
+        },
+        "error_message": {
+            "type": "string"
+        },
+        "sent_at": {
+            "type": "string"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "sms",
+                "enabled": true,
+                "sms_receiver": "${new.receiver}",
+                "sms_content": "${new.content}",
+                "sms_subject": "${new.subject}"
+            }
+        ]
+    }
+}

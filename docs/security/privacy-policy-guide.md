@@ -1,0 +1,491 @@
+# 개인정보보호 정책 가이드 (Privacy Policy Guide)
+
+> 대상: 운영/인프라/서비스 관리자, 백엔드 개발자  
+> 범위: Entity Server 자동 휴면 전환, 개인정보 보유기간 파기, 비밀번호 만료 정책
+
+---
+
+## 개요
+
+Entity Server의 개인정보보호 정책 자동화 기능은 **3가지 독립 모듈**로 구성되며, 모두 기본적으로 비활성화되어 있습니다.
+`configs/auth/privacy_policy.json` 파일을 생성하고 각 섹션의 `enabled: true`로 설정해 원하는 기능만 선택적으로 활성화합니다.
+
+| 모듈              | 설명                                               | 기본 상태 |
+| ----------------- | -------------------------------------------------- | --------- |
+| **휴면 정책**     | 장기 미접속 계정 자동 휴면 전환 + 사전 경고 이메일 | 비활성    |
+| **보유기간 파기** | 휴면 계정의 개인정보 자동 익명화/삭제              | 비활성    |
+| **비밀번호 정책** | 주기적 비밀번호 변경 강제 + 재사용 방지            | 비활성    |
+
+> **SMTP 미설정 시**: 이메일 발송이 자동으로 건너뛰어집니다. 이메일 없이 자동 전환/파기만 동작합니다.
+
+---
+
+## 설정 파일
+
+`configs/auth/privacy_policy.json` 파일이 없으면 정책 자동화 전체가 비활성화됩니다.
+
+### 전체 예시
+
+```json
+{
+    "dormancy": {
+        "enabled": true,
+        "dormancy_days": 365,
+        "warning_days": [30, 7],
+        "email_template": "account/dormancy_warning",
+        "check_interval_hours": 24
+    },
+    "data_retention": {
+        "enabled": true,
+        "retention_days": 1095,
+        "action": "anonymize",
+        "check_interval_hours": 24
+    },
+    "password_policy": {
+        "enabled": true,
+        "max_age_days": 180,
+        "warning_days": [14, 7],
+        "email_template": "account/password_expiry_warning",
+        "history_count": 3,
+        "min_length": 8,
+        "require_mixed_case": false,
+        "require_number": false,
+        "require_special": false
+    }
+}
+```
+
+---
+
+## 1. 휴면 정책
+
+### 동작 방식
+
+서버 시작 1분 후 첫 번째 사이클이 실행되며, 이후 `check_interval_hours` 간격으로 반복합니다.
+
+```
+dormancyLoop (check_interval_hours마다 반복)
+  ├─ active 계정 전체 스캔 (admin 제외)
+  ├─ 마지막 활동 시각 < dormancy_days 전 → status: "dormant" 자동 전환
+  └─ 마지막 활동 시각이 warning_days 임박 → 경고 이메일 발송
+```
+
+**마지막 활동 시각 판단 우선순위**: `last_login_time` → `updated_time` → `created_time`
+
+### 설정 항목
+
+| 키                     | 타입   | 설명                                               |
+| ---------------------- | ------ | -------------------------------------------------- |
+| `enabled`              | bool   | 활성화 여부                                        |
+| `dormancy_days`        | int    | 마지막 활동 후 N일 경과 시 휴면 전환               |
+| `warning_days`         | []int  | 휴면 전환 N일 전에 경고 이메일 발송 (여러 값 가능) |
+| `email_template`       | string | SMTP 이메일 템플릿 이름                            |
+| `check_interval_hours` | int    | 배치 실행 주기 (시간 단위)                         |
+
+### 중복 발송 방지
+
+`account.dormancy_warned_days` 필드로 마지막 발송 D-일수를 추적합니다.
+
+- `warning_days: [30, 7]` 설정 시: D-30, D-7에 각 1회만 발송
+- 발송 전 DB 업데이트를 먼저 수행하여 다중 인스턴스 환경에서도 중복 방지
+- 자세한 중복 방지 구조는 [이메일 발송 처리 방식](#이메일-발송-처리-방식) 참조
+
+### 관리자 계정 처리
+
+`rbac_role: "admin"` 계정은 자동 휴면 전환에서 **항상 제외**됩니다.
+
+### 이메일 템플릿
+
+기본 제공 템플릿: `templates/email/dormancy_warning.html`
+
+`email_template`을 비워두면 이메일이 발송되지 않습니다. 커스텀 템플릿 파일명(확장자 제외)을 지정하면 해당 템플릿을 사용합니다.
+
+| 변수           | 설명                                          |
+| -------------- | --------------------------------------------- |
+| `${email}`     | 사용자 이메일                                 |
+| `${days_left}` | 휴면까지 남은 일수                            |
+| `${warn_day}`  | 발송 기준이 된 warning_days 임계값            |
+| `${login_url}` | 로그인 페이지 URL (템플릿에서 직접 지정 필요) |
+
+### 휴면 해제
+
+`POST /v1/auth/reactivate`를 통해 비밀번호 또는 OAuth 코드를 검증한 후 `active`로 복구됩니다.
+재활성화 시 `last_login_time`이 자동 갱신됩니다.
+
+---
+
+## 2. 개인정보 보유기간 자동 파기
+
+### 동작 방식
+
+서버 시작 2분 후 첫 번째 실행, 이후 `check_interval_hours` 간격으로 반복합니다.
+
+```
+dataRetentionLoop (check_interval_hours마다 반복)
+  ├─ dormant 계정 전체 스캔 (500건 단위 페이지네이션)
+  ├─ 휴면 전환 시점(updated_time) + retention_days 초과 여부 확인
+  └─ action에 따라 파기 처리
+```
+
+기준 시각: `status`가 `dormant`로 변경된 시점의 `updated_time`  
+→ 휴면 전환 후 `retention_days`일이 지난 계정만 대상입니다.
+
+### 설정 항목
+
+| 키                     | 타입   | 설명                                               |
+| ---------------------- | ------ | -------------------------------------------------- |
+| `enabled`              | bool   | 활성화 여부                                        |
+| `retention_days`       | int    | 휴면 전환 후 N일 경과 시 파기                      |
+| `action`               | string | `"anonymize"` (익명화) 또는 `"delete"` (물리 삭제) |
+| `check_interval_hours` | int    | 배치 실행 주기 (시간 단위)                         |
+
+### action 선택 가이드
+
+| 구분        | `"anonymize"`                           | `"delete"`                |
+| ----------- | --------------------------------------- | ------------------------- |
+| 동작        | 개인정보 필드 마스킹 + 연관 레코드 삭제 | 계정 레코드 물리 삭제     |
+| 데이터 잔존 | 비식별 통계 목적으로 잔존 가능          | 완전 소거                 |
+| 법적 의무   | 개인정보보호법상 비식별 처리 허용       | 최강 수준                 |
+| 권장        | 서비스 통계/감사 필요 시                | 불필요한 데이터 0 보존 시 |
+
+---
+
+### 익명화(`"anonymize"`) 처리 상세
+
+익명화는 계정 1건당 아래 **5단계 순서**로 실행됩니다.  
+각 단계는 독립적으로 처리되며 특정 엔티티가 없으면 해당 단계를 건너뜁니다.
+
+#### ① account 레코드 마스킹
+
+| 필드     | 변경 전            | 변경 후                            |
+| -------- | ------------------ | ---------------------------------- |
+| `email`  | `user@example.com` | `withdrawn_{seq}@anonymized.local` |
+| `passwd` | bcrypt 해시        | 빈 문자열 (로그인 불가 상태)       |
+| `status` | `dormant`          | `inactive`                         |
+
+나머지 필드(`last_login_time`, `created_time`, `rbac_role` 등)는 **변경하지 않습니다**.  
+통계 및 감사 목적으로 계정의 생성/활동 이력은 보존됩니다.
+
+#### ② account_oauth 레코드 삭제
+
+`account_oauth` 엔티티에서 `account_seq = {seq}` 조건으로 조회 후 **전체 물리 삭제**합니다.  
+소셜 로그인 연동 정보(provider ID, access token 등)를 완전히 제거합니다.
+
+- `account_oauth` 엔티티가 없으면 이 단계를 건너뜁니다.
+- 100건 단위로 조회하여 삭제합니다.
+
+#### ③ user 엔티티 익명화
+
+`user` 엔티티에서 `account_seq = {seq}` 조건으로 연결된 사용자 프로필을 찾아 마스킹합니다.
+
+| 필드            | 변경 전               | 변경 후               |
+| --------------- | --------------------- | --------------------- |
+| `name`          | `홍길동`              | `탈퇴회원_{user.seq}` |
+| `profile_image` | `/uploads/abc.jpg`    | 빈 문자열             |
+| `status`        | `active` / `inactive` | `inactive`            |
+
+- `user` 엔티티가 없거나 `account_seq` 필드가 없으면 이 단계를 건너뜁니다.
+- `name`, `profile_image`, `status` 외 필드(`phone`, `birth_date` 등)는 **변경하지 않습니다**.  
+  추가 필드를 마스킹해야 한다면 entity hook을 활용하거나 소스를 직접 수정하세요.
+
+#### ④ password_history 삭제
+
+`password_history` 엔티티에서 `account_seq = {seq}` 조건의 이력을 **전체 물리 삭제**합니다.  
+비밀번호 재사용 방지 이력을 함께 소거합니다.
+
+- `password_history` 엔티티가 없으면 이 단계를 건너뜁니다.
+- 100건 단위로 조회하여 삭제합니다.
+
+#### ⑤ 처리 결과 카운트
+
+5단계를 마치면 해당 계정을 `affected` 카운터에 더합니다.  
+배치 종료 후 `affected > 0`이면 로그에 처리 건수와 action이 기록됩니다.
+
+```
+[INFO] Privacy/retention: processed=2 (action=anonymize)
+```
+
+---
+
+### 물리 삭제(`"delete"`) 처리 상세
+
+`action: "delete"`로 설정하면 account 레코드 자체를 **하드 삭제(hard=true)**합니다.  
+account 삭제 후에도 ② account_oauth 삭제, ③ user 익명화, ④ password_history 삭제는 **동일하게 실행**됩니다.
+
+> **주의**: 물리 삭제 후에는 복구가 불가능합니다.  
+> 데이터베이스 백업 정책과 반드시 병행 운용하세요.
+
+---
+
+### 오류 처리
+
+| 상황                              | 동작                                        |
+| --------------------------------- | ------------------------------------------- |
+| account config 로드 실패          | 해당 사이클 전체 건너뜀, 에러 로그 출력     |
+| 개별 계정 처리 중 엔티티 오류     | 해당 계정만 건너뜀, 다음 계정 계속 처리     |
+| 연관 엔티티(user 등) 없음         | 해당 단계 조용히 건너뜀 (에러로 처리 안 함) |
+| 분산 락 경합 (다중 인스턴스 환경) | 락 획득 실패 인스턴스는 해당 사이클 건너뜀  |
+
+다음 배치 사이클에서 아직 처리되지 않은 계정을 다시 시도합니다.
+
+---
+
+## 3. 비밀번호 만료 정책
+
+### 동작 방식
+
+세 가지 경로로 작동합니다.
+
+```
+1. 배치 경고 (서버 자동)
+   passwordExpiryLoop (24시간마다)
+   └─ has_password=true 계정 스캔 → 만료 임박 시 경고 이메일
+
+2. 로그인 시 실시간 감지
+   HandleLogin → CheckPasswordExpiry()
+   └─ 만료됨 → password_expired: true (토큰은 정상 발급)
+   └─ 14일 이내 → password_expires_in_days: N
+
+3. 비밀번호 변경
+   POST /v1/auth/change-password
+   └─ 복잡도 검증 + 이전 비밀번호 재사용 방지
+```
+
+### 설정 항목
+
+| 키                   | 타입   | 설명                                          |
+| -------------------- | ------ | --------------------------------------------- |
+| `enabled`            | bool   | 활성화 여부                                   |
+| `max_age_days`       | int    | 비밀번호 유효 기간 (일 단위, 0이면 무제한)    |
+| `warning_days`       | []int  | 만료 N일 전 경고 이메일                       |
+| `email_template`     | string | SMTP 이메일 템플릿 이름                       |
+| `history_count`      | int    | 이전 비밀번호 재사용 금지 횟수 (0이면 비활성) |
+| `min_length`         | int    | 최소 비밀번호 길이                            |
+| `require_mixed_case` | bool   | 대소문자 혼합 필수                            |
+| `require_number`     | bool   | 숫자 포함 필수                                |
+| `require_special`    | bool   | 특수문자 포함 필수                            |
+
+### 로그인 응답 통합
+
+비밀번호 정책이 활성화된 경우 `POST /v1/auth/login` 응답에 추가 필드가 포함됩니다.
+
+```json
+// 만료된 경우
+{
+  "ok": true,
+  "data": {
+    "access_token": "...",
+    "refresh_token": "...",
+    "password_expired": true,
+    "password_change_message": "비밀번호가 만료되었습니다. 보안을 위해 비밀번호를 변경해주세요."
+  }
+}
+
+// 14일 이내 만료 예정
+{
+  "ok": true,
+  "data": {
+    "access_token": "...",
+    "refresh_token": "...",
+    "password_expires_in_days": 7
+  }
+}
+```
+
+> **로그인은 차단되지 않습니다.** `password_expired: true`를 받은 클라이언트가 비밀번호 변경 화면으로 유도해야 합니다.
+
+### 비밀북 변경 API
+
+`POST /v1/auth/change-password` (JWT 필요)
+
+```json
+{
+    "current_password": "OldPassword123!",
+    "new_password": "NewPassword456@"
+}
+```
+
+변경 시 수행되는 검증 순서:
+
+1. 현재 비밀번호 일치 확인
+2. 새 비밀번호 ≠ 현재 비밀번호 확인
+3. 복잡도 규칙 검증 (min*length, require*\* 설정)
+4. 이전 비밀번호 재사용 여부 확인 (history_count)
+
+### 소셜 전용 계정
+
+`has_password: false`인 계정은 비밀번호 만료 배치 스캔에서 **자동 제외**됩니다.
+
+### 기존 계정 호환성
+
+`passwd_changed_time`이 없는 기존 계정은 만료 판단에서 제외됩니다 (신규 로그인 시 갱신).
+
+### 이메일 템플릿
+
+기본 제공 템플릿: `templates/email/password_expiry_warning.html`
+
+`email_template`을 비워두면 이메일이 발송되지 않습니다. 커스텀 템플릿 파일명(확장자 제외)을 지정하면 해당 템플릿을 사용합니다.
+
+| 변수                     | 설명                                                 |
+| ------------------------ | ---------------------------------------------------- |
+| `${email}`               | 사용자 이메일                                        |
+| `${days_left}`           | 만료까지 남은 일수                                   |
+| `${change_password_url}` | 비밀번호 변경 페이지 URL (템플릿에서 직접 지정 필요) |
+
+---
+
+## 운영 참고
+
+### 이메일 발송 처리 방식
+
+Privacy 배치에서 발송하는 이메일(휴면 경고, 비밀번호 만료 경고)은 Entity Server의 **SMTP 큐 파이프라인**을 통해 처리됩니다.
+
+#### 전체 흐름
+
+```
+Privacy 배치 (dormancyLoop / passwordExpiryLoop)
+  │
+  ├─ smtpSend(EmailJob) 호출
+  │     └─ SMTP 서비스 미설정 시 → nil 체크 후 조용히 건너뜀 (파기/전환은 정상 진행)
+  │
+  ▼
+smtp.Service.EnqueueJob(EmailJob)
+  │
+  ▼
+smtp_log 테이블에 status=pending 레코드 삽입
+  │
+  ▼
+SMTP 디스패처 (5초 기본 주기)
+  ├─ pending 레코드 CAS claim (다중 워커 경합 방지)
+  │
+  ▼
+워커 풀 (workers 수 병렬)
+  ├─ 템플릿 렌더링 (templates/email/{template_name}.html)
+  ├─ layout.html로 래핑 (default_layout 미설정 시 단독 렌더링)
+  ├─ go-mail 라이브러리로 실제 SMTP 전송
+  └─ smtp_log.status 갱신 (sent / failed)
+       └─ failed → max_retries 횟수까지 재시도
+```
+
+**발송까지 소요 시간**: 배치에서 `smtpSend()` 호출 후 → `0 ~ dispatch_interval_sec`초 내 워커가 처리 → SMTP 서버 응답 대기 시간 추가
+
+#### SMTP 미설정 시 동작
+
+`configs/notification/smtp.json`이 없거나 `smtpService`가 초기화되지 않은 경우:
+
+- `smtpSendFn`이 `nil`로 전달됩니다.
+- Privacy 서비스가 시작 시 `smtpSend == nil` 확인 후 경고 이메일 발송 단계를 **조용히 건너뜁니다**.
+- 휴면 전환, 개인정보 파기 등 DB 처리는 **이메일과 무관하게 정상 실행**됩니다.
+
+#### 이메일 종류별 발송 내용
+
+**① 휴면 경고 이메일** (`dormancy.email_template`)
+
+배치에서 구성하는 `EmailJob`:
+
+```
+Subject:      "계정 휴면 예정 안내 (D-{days_left})"
+TemplateName: dormancy.email_template 설정값  (예: "account/dormancy_warning")
+TemplateData:
+  - email:     수신자 이메일 주소
+  - days_left: 현재 기준 휴면까지 남은 실제 일수
+  - warn_day:  발송을 트리거한 warning_days 임계값 (예: 30 또는 7)
+```
+
+템플릿 파일 위치: `templates/email/account/dormancy_warning.html`
+
+**② 비밀번호 만료 경고 이메일** (`password_policy.email_template`)
+
+```
+Subject:      "비밀번호 변경 안내 (D-{days_left})"
+TemplateName: password_policy.email_template 설정값  (예: "account/password_expiry_warning")
+TemplateData:
+  - email:     수신자 이메일 주소
+  - days_left: 현재 기준 만료까지 남은 실제 일수
+```
+
+템플릿 파일 위치: `templates/email/account/password_expiry_warning.html`
+
+> **참고**: `email_template`을 빈 문자열로 두면 템플릿을 찾지 못해 렌더링이 실패하고 해당 이메일 발송만 건너뜁니다.
+
+#### 중복 발송 방지 구조
+
+Privacy 배치는 **이중 중복 방지**를 적용합니다.
+
+**1차 방어 — account 필드 (인당 dedup)**
+
+| 배치               | 사용 필드                   | 기록 내용          | 초기화 시점                                                                                 |
+| ------------------ | --------------------------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| 휴면 경고          | `dormancy_warned_days`      | 마지막 발송 D-일수 | 로그인 시 (`last_login_time` 갱신) / `dormancy_days` 도달 → `dormant` 전환 후 자동 무의미화 |
+| 비밀번호 만료 경고 | `passwd_expiry_warned_days` | 마지막 발송 D-일수 | 비밀번호 변경 시 → 0으로 초기화                                                             |
+
+발송 전에 DB 업데이트를 먼저 수행하므로, 두 인스턴스가 동시에 같은 계정을 처리해도 두 번째 인스턴스는 이미 변경된 값을 읽어 건너뜁니다.
+
+**2차 방어 — 분산 락 (인스턴스 간 dedup)**
+
+`privacy_cron_lock` 엔티티의 `job_name` UNIQUE 제약을 활용합니다.
+
+```
+배치 실행 직전
+  └─ INSERT privacy_cron_lock (job_name="privacy:dormancy:{slot}", expires_time=...)
+       ├─ 성공 → 이 인스턴스가 해당 주기에서 배치 실행
+       └─ unique 제약 위반 → 다른 인스턴스가 이미 실행 중 → 현재 인스턴스 건너뜀
+
+배치 완료 후
+  └─ DELETE privacy_cron_lock (job_name 해당 row)
+```
+
+`privacy_cron_lock` 엔티티가 없는 환경(단일 인스턴스)에서는 락 없이 정상 실행됩니다.
+
+---
+
+### 배치 시작 지연
+
+서비스 재시작 직후 즉각 실행을 방지하기 위한 초기 대기 시간이 적용됩니다.
+
+| 배치               | 초기 대기 | 이후 주기                             |
+| ------------------ | --------- | ------------------------------------- |
+| 휴면 정책          | 1분       | `dormancy.check_interval_hours`       |
+| 보유기간 파기      | 2분       | `data_retention.check_interval_hours` |
+| 비밀번호 만료 경고 | 3분       | 24시간 고정                           |
+
+### 로그 확인
+
+정책별 배치 로그는 서버 표준 출력에 기록됩니다.
+
+```
+[INFO] Privacy: dormancy policy enabled (dormancy=365d, warnings=[30 7], interval=24h)
+[INFO] Privacy/dormancy: warned=3, transitioned=1
+[INFO] Privacy/retention: processed=2 (action=anonymize)
+[INFO] Privacy/password: expiry warnings sent=5
+```
+
+### 설정 파일 없을 때
+
+`configs/auth/privacy_policy.json`이 없으면 경고 로그가 출력되고 전체 비활성 상태로 시작합니다.
+기존 서비스 동작에 영향을 주지 않습니다.
+
+### 권장 운용 시나리오
+
+```
+# 단계적 활성화 권장 순서
+
+1. 먼저 dormancy만 활성화 (경고 이메일부터 시작)
+   → 사용자 공지 후 dormancy_days 설정
+
+2. 안정화 후 data_retention 활성화
+   → action: "anonymize"로 시작, 법무 검토 후 "delete" 전환 고려
+
+3. 마지막으로 password_policy 활성화
+   → max_age_days를 길게 설정하고 점진적으로 단축
+```
+
+---
+
+## 관련 문서
+
+- [인증 라우트](../api-routes/auth-routes.md)
+- [Auth Guide](auth-guide.md)
+- [소셜 로그인 가이드](../extensions/social-login-guide.md)
+- [SMTP 가이드](../notification/smtp-guide.md)
+- [설계 문서](../dev/design/privacy-policy-design.md)

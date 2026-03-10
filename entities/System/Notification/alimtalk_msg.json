@@ -1,0 +1,53 @@
+{
+    "name": "alimtalk_msg",
+    "description": "알림톡 발송 트리거 엔티티 — Hook 또는 API를 통해 생성되면 알림톡 발송이 시작됩니다. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "fields": {
+        "template_code": {
+            "index": true,
+            "comment": "카카오 알림톡 템플릿 코드",
+            "required": true
+        },
+        "receiver": {
+            "index": true,
+            "hash": true,
+            "comment": "수신자 전화번호",
+            "required": true
+        },
+        "status": {
+            "index": true,
+            "type": [
+                "pending",
+                "processing",
+                "sent",
+                "delivered",
+                "failed"
+            ],
+            "default": "pending",
+            "comment": "발송 상태 (delivered = 프로바이더 수신 확인)"
+        },
+        "variables_json": {
+            "type": "text",
+            "comment": "템플릿 변수 JSON (#{key} 바인딩)"
+        },
+        "provider": {
+            "comment": "프로바이더 키 (빈 값이면 default)"
+        },
+        "ref_entity": {
+            "comment": "참조 엔티티 이름"
+        },
+        "ref_seq": {
+            "type": "int"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "alimtalk",
+                "alimtalk_receiver": "${new.receiver}",
+                "alimtalk_template_code": "${new.template_code}",
+                "alimtalk_variables": "${new.variables_json}"
+            }
+        ]
+    }
+}

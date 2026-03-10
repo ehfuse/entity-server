@@ -1,0 +1,86 @@
+{
+    "name": "push_log",
+    "description": "푸시 알림 발송 이력. 발송 결과 추적 및 재시도 관리용. account_seq(JWT) 또는 device_id(HMAC) 중 하나 존재. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history_ttl": 30,
+    "compress": true,
+    "fields": {
+        "account_seq": {
+            "index": true,
+            "comment": "수신자 account seq (JWT 인증 시. nullable)"
+        },
+        "attempt_time": {
+            "index": true,
+            "comment": "처리 시작(claim) 시각 — 비정상 종료 감지용"
+        },
+        "body": {
+            "comment": "알림 본문"
+        },
+        "device_id": {
+            "index": true,
+            "comment": "대상 디바이스 ID (HMAC 인증 시. nullable)",
+            "type": "varchar(255)"
+        },
+        "device_seq": {
+            "index": true,
+            "comment": "대상 디바이스 seq (account_device.seq)"
+        },
+        "device_token": {
+            "comment": "발송 시점 디바이스 토큰 스냅샷 (FCM registration token 또는 APNs device token)"
+        },
+        "error_message": {
+            "comment": "실패 시 오류 메시지",
+            "type": "varchar(500)"
+        },
+        "platform": {
+            "index": true,
+            "comment": "발송 채널",
+            "type": [
+                "fcm",
+                "apns",
+                "web"
+            ]
+        },
+        "push_data": {
+            "comment": "커스텀 페이로드 JSON 문자열",
+            "type": "varchar(2000)"
+        },
+        "ref_entity": {
+            "index": true,
+            "comment": "트리거 엔티티명"
+        },
+        "ref_seq": {
+            "index": true,
+            "comment": "트리거 레코드 seq"
+        },
+        "retry_count": {
+            "index": true,
+            "comment": "재시도 횟수",
+            "type": "uint",
+            "default": 0
+        },
+        "sent_time": {
+            "index": true,
+            "comment": "발송 완료 시각"
+        },
+        "status": {
+            "index": true,
+            "comment": "발송 상태",
+            "type": [
+                "pending",
+                "processing",
+                "sent",
+                "delivered",
+                "failed",
+                "expired"
+            ],
+            "default": "pending",
+            "required": true
+        },
+        "title": {
+            "index": true,
+            "comment": "알림 제목"
+        }
+    }
+}

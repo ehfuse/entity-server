@@ -1,0 +1,30 @@
+<h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #1a1a2e;">주문이 확인되었습니다</h2>
+<p style="margin: 0 0 24px; font-size: 15px; color: #555; line-height: 1.6;">
+    ${name|고객}님, 주문해 주셔서 감사합니다.
+</p>
+<div style="padding: 20px; background-color: #f8f8fa; border-radius: 6px; margin: 0 0 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #888;">주문번호</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #1a1a2e; font-weight: 600; text-align: right;">${order_id|ORD-000001}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #888; border-top: 1px solid #eaeaea;">주문일시</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #1a1a2e; text-align: right; border-top: 1px solid #eaeaea;">${order_date|2026-01-01}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px 0; font-size: 14px; color: #888; border-top: 1px solid #eaeaea;">상품</td>
+            <td style="padding: 8px 0; font-size: 14px; color: #1a1a2e; text-align: right; border-top: 1px solid #eaeaea;">${items|상품 1건}</td>
+        </tr>
+        <tr>
+            <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: #1a1a2e; border-top: 2px solid #1a1a2e;">총 결제금액</td>
+            <td style="padding: 12px 0; font-size: 16px; font-weight: 700; color: #1a1a2e; text-align: right; border-top: 2px solid #1a1a2e;">${total|50,000원}</td>
+        </tr>
+    </table>
+</div>
+<div style="text-align: center; margin: 0 0 24px;">
+    <a href="${detail_url|#}" style="display: inline-block; padding: 14px 36px; background-color: #1a1a2e; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 15px; font-weight: 600;">주문 상세 보기</a>
+</div>
+<p style="margin: 0; font-size: 13px; color: #aaa; line-height: 1.6;">
+    주문 관련 문의사항이 있으시면 고객센터로 연락해 주세요.
+</p>

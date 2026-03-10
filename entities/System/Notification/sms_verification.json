@@ -1,0 +1,50 @@
+{
+    "name": "sms_verification",
+    "description": "SMS 인증번호 검증 엔티티. 인증번호 SHA-256 해시 저장, 시도 횟수 관리. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history": false,
+    "fields": {
+        "phone": {
+            "index": true,
+            "hash": true,
+            "comment": "수신 전화번호",
+            "type": "varchar(20)",
+            "required": true
+        },
+        "purpose": {
+            "index": true,
+            "comment": "인증 목적",
+            "type": [
+                "signup",
+                "password_reset",
+                "identity"
+            ],
+            "required": true
+        },
+        "status": {
+            "index": true,
+            "type": [
+                "pending",
+                "verified",
+                "expired"
+            ],
+            "default": "pending",
+            "required": true
+        },
+        "code_hash": {
+            "type": "varchar(64)",
+            "required": true,
+            "comment": "인증번호 SHA-256 해시"
+        },
+        "expires_at": {
+            "required": true,
+            "comment": "만료 시각"
+        },
+        "attempts": {
+            "type": "uint",
+            "default": 0,
+            "comment": "검증 시도 횟수"
+        }
+    }
+}

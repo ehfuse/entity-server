@@ -1,0 +1,89 @@
+{
+    "name": "friendtalk_log",
+    "description": "친구톡(브랜드메시지) 발송 로그 — 워커가 소비하는 DB 큐 역할을 합니다. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "read_only": true,
+    "compress": true,
+    "fields": {
+        "status": {
+            "index": true,
+            "type": [
+                "pending",
+                "processing",
+                "sent",
+                "failed",
+                "expired"
+            ],
+            "default": "pending",
+            "comment": "발송 상태"
+        },
+        "msg_type": {
+            "index": true,
+            "type": [
+                "text",
+                "image",
+                "wide_image",
+                "wide_item_list",
+                "carousel"
+            ],
+            "default": "text"
+        },
+        "receiver": {
+            "index": true,
+            "hash": true,
+            "comment": "수신자 전화번호",
+            "required": true
+        },
+        "friendtalk_msg_seq": {
+            "index": true,
+            "comment": "friendtalk_msg 참조 seq"
+        },
+        "content": {
+            "type": "text",
+            "comment": "메시지 본문"
+        },
+        "image_url": {
+            "comment": "이미지 URL"
+        },
+        "image_link": {
+            "comment": "이미지 클릭 시 이동 URL"
+        },
+        "is_ad": {
+            "type": "bool",
+            "default": true,
+            "comment": "광고성 메시지 여부"
+        },
+        "buttons_json": {
+            "type": "text",
+            "comment": "버튼 목록 JSON"
+        },
+        "carousel_json": {
+            "type": "text",
+            "comment": "캐러셀 데이터 JSON"
+        },
+        "items_json": {
+            "type": "text",
+            "comment": "와이드 아이템 리스트 JSON"
+        },
+        "header": {
+            "comment": "와이드 아이템 리스트 헤더"
+        },
+        "provider": {
+            "comment": "사용 프로바이더"
+        },
+        "provider_msg_id": {
+            "comment": "프로바이더 메시지 ID"
+        },
+        "error_message": {
+            "type": "text",
+            "comment": "오류 메시지"
+        },
+        "retry_count": {
+            "type": "uint",
+            "default": 0
+        },
+        "sent_at": {
+            "type": "string"
+        }
+    }
+}

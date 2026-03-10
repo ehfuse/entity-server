@@ -1,0 +1,7 @@
+-----BEGIN PRIVATE KEY-----
+(샘플) Apple Developer Console → Certificates, Identifiers & Profiles
+→ Keys → "+" 버튼으로 APNs 키 생성 후 다운로드한 .p8 파일 내용을 여기에 붙여넣으세요.
+
+실제 키는 아래와 같은 형식입니다:
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg...
+-----END PRIVATE KEY-----
