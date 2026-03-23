@@ -1,0 +1,82 @@
+{
+    "doc_type": "facility_card",
+    "label": "건축물대장",
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 5,
+        "x_tolerance": 12
+    },
+    "keywords": {
+        "building_name": ["건물명", "건축물명", "명칭"],
+        "address": ["소재지", "대지위치", "주소"],
+        "building_use": ["주용도", "용도"],
+        "structure": ["구조"],
+        "area": ["연면적", "건축면적", "면적"],
+        "floor_count": ["층수", "지상", "지하"],
+        "approval_date": ["사용승인일", "사용승인", "준공일"],
+        "owner": ["소유자", "건축주"]
+    },
+    "fields": {
+        "building_name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "건물명", "direction": "RIGHT" },
+                { "keyword": "건축물명", "direction": "RIGHT" },
+                { "keyword": "명칭", "direction": "RIGHT" }
+            ]
+        },
+        "address": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "소재지", "direction": "RIGHT" },
+                { "keyword": "대지위치", "direction": "RIGHT" }
+            ]
+        },
+        "building_use": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "주용도", "direction": "RIGHT" },
+                { "keyword": "용도", "direction": "RIGHT" }
+            ]
+        },
+        "structure": {
+            "mode": "anchor",
+            "criteria": [{ "keyword": "구조", "direction": "RIGHT" }]
+        },
+        "area": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "연면적", "direction": "RIGHT" },
+                { "keyword": "건축면적", "direction": "RIGHT" }
+            ],
+            "refine": "number"
+        },
+        "floor_count": {
+            "mode": "regex_scan",
+            "pattern": "지상\\s*(\\d+)층"
+        },
+        "approval_date": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "사용승인일", "direction": "RIGHT" },
+                { "keyword": "사용승인", "direction": "RIGHT" }
+            ],
+            "refine": "date"
+        },
+        "owner": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "소유자", "direction": "RIGHT" },
+                { "keyword": "건축주", "direction": "RIGHT" }
+            ]
+        }
+    },
+    "required_fields": ["address"],
+    "confidence_weight": {
+        "address": 0.3,
+        "building_use": 0.2,
+        "area": 0.2,
+        "approval_date": 0.15,
+        "owner": 0.15
+    }
+}
