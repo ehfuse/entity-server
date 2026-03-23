@@ -1,0 +1,46 @@
+{
+    "enabled": false,
+
+    "data": {
+        "enabled": true,
+        "schedule": "0 2 * * *",
+        "db_groups": ["default"],
+        "entities": {
+            "include": [],
+            "exclude": [],
+            "exclude_patterns": ["*_log"]
+        },
+        "include_history": false,
+        "format": "jsonl",
+        "compress": true,
+        "encrypt_passphrase": "${BACKUP_ENCRYPT_KEY}",
+        "batch_size": 500,
+        "max_concurrent_entities": 3,
+        "retention": {
+            "keep_count": 7,
+            "keep_days": 30
+        }
+    },
+
+    "files": {
+        "enabled": true,
+        "mode": "realtime",
+        "max_retries": 3,
+        "retry_interval_sec": 60
+    },
+
+    "schema": {
+        "enabled": true
+    },
+
+    "target": {
+        "storage_key": "s3-backup",
+        "prefix": "backups"
+    },
+
+    "notification": {
+        "on_success": false,
+        "on_failure": true,
+        "channels": ["log", "smtp"]
+    }
+}
