@@ -1,0 +1,38 @@
+{
+    "default": "distance_es",
+    "groups": {
+        "distance_es": {
+            "driver": "mysql",
+            "host": "${DB_HOST_DISTANCE_DEV}",
+            "port": "${DB_PORT_DISTANCE_DEV}",
+            "database": "${DB_NAME_DISTANCE_DEV}",
+            "user": "${DB_USER_DISTANCE_DEV}",
+            "password": "${DB_PASSWORD_DISTANCE_DEV}",
+            "maxOpenConns": 50,
+            "maxIdleConns": 25,
+            "connMaxLifetimeSec": 3600
+        },
+        "codeshop_entities": {
+            "driver": "mysql",
+            "host": "${DB_HOST_CODESHOP_DEV}",
+            "port": "${DB_PORT_CODESHOP_DEV}",
+            "database": "${DB_NAME_CODESHOP_DEV}",
+            "user": "${DB_USER_CODESHOP_DEV}",
+            "password": "${DB_PASSWORD_CODESHOP_DEV}",
+            "maxOpenConns": 20,
+            "maxIdleConns": 10,
+            "connMaxLifetimeSec": 3600
+        },
+        "production": {
+            "driver": "mysql",
+            "host": "${DB_HOST_PRODUCTION}",
+            "port": "${DB_PORT_PRODUCTION}",
+            "database": "${DB_NAME_PRODUCTION}",
+            "user": "${DB_USER_PRODUCTION}",
+            "password": "${DB_PASSWORD_PRODUCTION}",
+            "maxOpenConns": 50,
+            "maxIdleConns": 25,
+            "connMaxLifetimeSec": 3600
+        }
+    }
+}
