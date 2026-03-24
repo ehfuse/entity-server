@@ -1,0 +1,57 @@
+{
+    "name": "license",
+    "description": "license 엔티티. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "cache": {
+        "ttl_seconds": 300
+    },
+    "fields": {
+        "bizno": {
+            "index": true,
+            "comment": "사업자번호",
+            "hash": true
+        },
+        "contract_date": {
+            "index": true,
+            "comment": "계약일"
+        },
+        "email": {
+            "index": true,
+            "hash": true,
+            "comment": "이메일"
+        },
+        "expire_date": {
+            "index": true,
+            "comment": "만료일"
+        },
+        "name": {
+            "index": true,
+            "comment": "라이선스명",
+            "required": true
+        },
+        "name_abbr": {
+            "index": true,
+            "comment": "약칭"
+        },
+        "pic": {
+            "index": true,
+            "comment": "담당자"
+        },
+        "sido": {
+            "index": true,
+            "comment": "시도"
+        },
+        "sigungu": {
+            "index": true,
+            "comment": "시군구"
+        },
+        "max_user_cnt": {
+            "type": "uint"
+        }
+    },
+    "reset_defaults": [
+        {
+            "name": "system",
+            "name_abbr": "system"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "name": "account_audit",
+    "description": "account 감사 로그. account.json 훅(after_insert/after_update/after_delete)에 의해 자동 기록됩니다. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "hard_delete": true,
+    "read_only": true,
+    "compress": true,
+    "fields": {
+        "account_seq": {
+            "index": true,
+            "comment": "계정 seq (JWT 인증 시 account.seq 참조. HMAC은 nullable)",
+            "type": "bigint",
+            "nullable": true
+        },
+        "action": {
+            "index": true,
+            "comment": "작업 유형 (after_insert → INSERT, after_update → UPDATE, after_delete → DELETE)",
+            "type": [
+                "INSERT",
+                "UPDATE",
+                "DELETE"
+            ],
+            "required": true
+        },
+        "email": {
+            "index": true,
+            "hash": true,
+            "comment": "작업 대상 계정 이메일",
+            "nullable": true
+        }
+    }
+}
