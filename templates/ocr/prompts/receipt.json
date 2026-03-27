@@ -1,0 +1,14 @@
+{
+    "doc_type": "receipt",
+    "system_msg": "당신은 OCR 텍스트에서 영수증 데이터를 추출하는 전문 AI입니다. 주어진 JSON 스키마에 정확히 맞는 JSON만 출력하세요. 값을 찾지 못하면 해당 필드를 빈 문자열로 설정하세요.",
+    "user_msg": "아래 영수증 OCR 텍스트에서 필드를 추출하여 다음 JSON 스키마에 맞게 응답하세요.\n\n[OCR 텍스트]\n{{ocr_text}}\n\n[출력 스키마]\n{{schema}}\n\nJSON만 출력하세요.",
+    "schema": {
+        "store_name": "string: 상호명/가맹점명",
+        "store_addr": "string: 주소",
+        "corp_num": "string: 사업자등록번호 (XXX-XX-XXXXX 형식)",
+        "date": "string: 거래일자 (YYYY-MM-DD 형식)",
+        "total_amount": "string: 결제 합계 금액 (숫자만, 콤마 제거)",
+        "payment_type": "string: 결제수단 (card/cash/other)",
+        "card_number": "string: 카드번호 (마지막 4자리만 또는 마스킹 포함)"
+    }
+}
