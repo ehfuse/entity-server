@@ -1,0 +1,64 @@
+{
+    "name": "account_login_log",
+    "description": "account_login_log 엔티티. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "compress": true,
+    "fields": {
+        "browser": {
+            "index": true,
+            "comment": "브라우저"
+        },
+        "country_code": {
+            "index": true,
+            "comment": "국가코드 iso2"
+        },
+        "device_id": {
+            "index": true,
+            "comment": "디바이스 ID",
+            "type": "string"
+        },
+        "device_type": {
+            "index": true,
+            "comment": "장치종류"
+        },
+        "domain": {
+            "index": true,
+            "comment": "도메인"
+        },
+        "email": {
+            "index": true,
+            "hash": true,
+            "comment": "로그인 이메일"
+        },
+        "ip_address": {
+            "index": true,
+            "hash": true,
+            "comment": "접속아이피"
+        },
+        "is_success": {
+            "index": true,
+            "comment": "성공여부"
+        },
+        "language": {
+            "comment": "언어"
+        },
+        "account_seq": {
+            "index": true,
+            "comment": "계정번호"
+        },
+        "auth_method": {
+            "index": true,
+            "comment": "인증 방식",
+            "type": ["password", "oauth", "2fa_totp", "2fa_recovery"],
+            "default": "password"
+        },
+        "location_info": {
+            "comment": "위치"
+        },
+        "passwd": {
+            "comment": "로그인 비밀번호"
+        },
+        "user_agent": {
+            "comment": "User Agent"
+        }
+    }
+}
