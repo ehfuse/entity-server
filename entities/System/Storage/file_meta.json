@@ -1,0 +1,72 @@
+{
+    "name": "file_meta",
+    "description": "파일 메타데이터. 업로드된 파일의 저장 위치·크기·해시·상태를 관리합니다. 파일 핸들러가 자동 기록하며 API를 통한 직접 수정은 허용되지 않습니다. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "history": false,
+    "hard_delete": true,
+    "read_only": true,
+    "fields": {
+        "backup_status": {
+            "index": true,
+            "comment": "백업 동기화 상태",
+            "type": [
+                "none",
+                "pending",
+                "synced",
+                "failed",
+                "skipped"
+            ],
+            "default": "none"
+        },
+        "size": {
+            "index": true,
+            "comment": "파일 크기 (bytes)",
+            "type": "bigint unsigned"
+        },
+        "status": {
+            "index": true,
+            "comment": "파일 상태",
+            "type": [
+                "active",
+                "pending",
+                "orphan",
+                "deleted"
+            ],
+            "default": "pending",
+            "required": true
+        },
+        "uuid": {
+            "index": true,
+            "comment": "파일 고유 식별자 (UUID v4). 저장 경로·다운로드 URL의 키로 사용",
+            "type": "varchar(36)",
+            "required": true,
+            "unique": true
+        },
+        "backup_retries": {
+            "comment": "백업 재시도 횟수"
+        },
+        "content_hash": {
+            "comment": "파일 SHA-256 해시 (중복 탐지·무결성 검증용)"
+        },
+        "entity_name": {
+            "comment": "파일이 첨부된 엔티티 이름"
+        },
+        "entity_seq": {
+            "comment": "파일이 첨부된 엔티티 레코드 seq. 업로드 직후 엔티티 미연결 시 NULL"
+        },
+        "field_name": {
+            "comment": "파일이 첨부된 필드 이름 (file/file[] 타입 필드)"
+        },
+        "mime_type": {
+            "comment": "파일 MIME 타입 (image/jpeg, application/pdf 등)"
+        },
+        "original_name": {
+            "comment": "업로드 시 원본 파일명 (보안 대상 — 암호화 저장)"
+        },
+        "storage_key": {
+            "comment": "스토리지 백엔드 내 상대 경로 (예: 2026/02/27/contact/uuid.jpg)"
+        },
+        "storage_path": {
+            "comment": "라이선스 접두어 포함 전체 경로 (예: 3/2026/02/27/contact/uuid.jpg)"
+        }
+    }
+}

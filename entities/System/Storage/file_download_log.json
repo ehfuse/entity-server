@@ -1,0 +1,43 @@
+{
+    "name": "file_download_log",
+    "description": "파일 다운로드 이력. 누가 어떤 파일을 언제 다운로드했는지 기록합니다. 감사(audit) 및 통계 목적. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "hard_delete": true,
+    "history": false,
+    "compress": true,
+    "fields": {
+        "account_seq": {
+            "index": true,
+            "comment": "다운로드한 계정 seq. JWT 인증 시 기록, 비인증은 NULL"
+        },
+        "downloaded_time": {
+            "index": true,
+            "comment": "다운로드 시각"
+        },
+        "entity_name": {
+            "index": true,
+            "comment": "파일이 속한 엔티티 이름"
+        },
+        "file_seq": {
+            "index": true,
+            "comment": "다운로드한 file_meta seq",
+            "required": true
+        },
+        "ip": {
+            "comment": "요청 IP 주소 (IPv4/IPv6)",
+            "type": "varchar(45)"
+        },
+        "thumb": {
+            "comment": "썸네일 요청 시 사이즈 (sm, md, lg). 원본 다운로드는 NULL",
+            "type": "varchar(10)"
+        },
+        "user_agent": {
+            "comment": "요청 User-Agent 헤더",
+            "type": "varchar(500)"
+        }
+    },
+    "fk": {
+        "account_seq": false,
+        "file_seq": false
+    },
+    "read_only": true
+}
