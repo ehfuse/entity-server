@@ -1,0 +1,56 @@
+{
+    "name": "anon_device",
+    "description": "비회원 디바이스 식별 및 사용 제한 집계. device_id 쿠키 값 기반으로 추적하며 익명 사용자 전용으로 사용합니다. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "fields": {
+        "id": {
+            "index": true,
+            "required": true,
+            "unique": true,
+            "comment": "익명 디바이스 ID (cookie/device_id)"
+        },
+        "calc_count": {
+            "index": true,
+            "type": "uint",
+            "default": 0,
+            "comment": "거리 계산 사용 횟수"
+        },
+        "first_seen_time": {
+            "comment": "최초 식별 시각"
+        },
+        "last_seen_time": {
+            "index": true,
+            "comment": "마지막 식별 시각"
+        },
+        "last_calc_time": {
+            "index": true,
+            "comment": "마지막 거리 계산 시각"
+        },
+        "blocked_until_time": {
+            "index": true,
+            "comment": "차단 해제 시각"
+        },
+        "last_ip_addr": {
+            "comment": "마지막 IP주소"
+        },
+        "device_type": {
+            "comment": "기기유형",
+            "type": ["mobile", "tablet", "desktop", "watch"],
+            "default": "mobile"
+        },
+        "platform": {
+            "comment": "플랫폼",
+            "type": ["android", "ios", "web", "windows", "macos", "linux"]
+        },
+        "browser": {
+            "comment": "브라우저"
+        },
+        "browser_version": {
+            "comment": "브라우저버전"
+        },
+        "user_agent": {
+            "comment": "User Agent"
+        }
+    },
+    "history": false
+}
