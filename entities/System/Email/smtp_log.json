@@ -1,0 +1,87 @@
+{
+    "name": "smtp_log",
+    "description": "SMTP 이메일 발송 이력. 발송 결과 추적 및 재시도 관리용. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "license_scope": false,
+    "hard_delete": true,
+    "history": false,
+    "compress": true,
+    "fields": {
+        "attempt_time": {
+            "index": true,
+            "comment": "처리 시작(claim) 시각"
+        },
+        "provider": {
+            "index": true,
+            "type": "varchar(50)"
+        },
+        "retry_count": {
+            "index": true,
+            "type": "uint",
+            "default": 0
+        },
+        "sent_time": {
+            "index": true,
+            "comment": "발송 완료 시각"
+        },
+        "smtp_msg_seq": {
+            "index": true,
+            "comment": "원본 smtp_msg seq"
+        },
+        "status": {
+            "index": true,
+            "type": [
+                "pending",
+                "processing",
+                "sent",
+                "failed",
+                "expired"
+            ],
+            "default": "pending",
+            "required": true
+        },
+        "from": {
+            "comment": "발신자"
+        },
+        "to": {
+            "type": "text",
+            "comment": "수신자 목록"
+        },
+        "cc": {
+            "type": "text",
+            "nullable": true
+        },
+        "bcc": {
+            "type": "text",
+            "nullable": true
+        },
+        "subject": {
+            "comment": "제목"
+        },
+        "body_text": {
+            "type": "mediumtext",
+            "nullable": true
+        },
+        "body_html": {
+            "type": "mediumtext",
+            "nullable": true
+        },
+        "attachments": {
+            "type": "text",
+            "nullable": true
+        },
+        "error_message": {
+            "type": "text",
+            "nullable": true
+        },
+        "message_id": {
+            "nullable": true,
+            "comment": "SMTP Message-ID 헤더"
+        },
+        "ref_entity": {
+            "nullable": true
+        },
+        "ref_seq": {
+            "nullable": true
+        }
+    }
+}

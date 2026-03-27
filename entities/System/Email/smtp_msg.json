@@ -1,0 +1,104 @@
+{
+    "name": "smtp_msg",
+    "description": "SMTP 이메일 트리거 엔티티. insert 시 smtp hook으로 비동기 발송. 사용자 환경에 맞게 fields를 자유롭게 확장할 수 있습니다.",
+    "hard_delete": true,
+    "history": false,
+    "fields": {
+        "provider": {
+            "index": true,
+            "comment": "사용할 SMTP 프로바이더 키 (미지정 시 default)",
+            "type": "varchar(50)"
+        },
+        "status": {
+            "index": true,
+            "type": [
+                "queued",
+                "sent",
+                "failed"
+            ],
+            "default": "queued",
+            "required": true
+        },
+        "from": {
+            "nullable": true,
+            "comment": "발신자 이메일 (미지정 시 프로바이더 기본값)"
+        },
+        "to": {
+            "type": "text",
+            "required": true,
+            "comment": "수신자 이메일 (쉼표 구분 또는 JSON 배열)"
+        },
+        "cc": {
+            "type": "text",
+            "nullable": true,
+            "comment": "참조 (쉼표 구분 또는 JSON 배열)"
+        },
+        "bcc": {
+            "type": "text",
+            "nullable": true,
+            "comment": "숨은 참조 (쉼표 구분 또는 JSON 배열)"
+        },
+        "subject": {
+            "required": true,
+            "comment": "이메일 제목"
+        },
+        "body_text": {
+            "type": "mediumtext",
+            "nullable": true,
+            "comment": "텍스트 본문"
+        },
+        "body_html": {
+            "type": "mediumtext",
+            "nullable": true,
+            "comment": "HTML 본문"
+        },
+        "template_name": {
+            "nullable": true,
+            "comment": "템플릿 이름 (templates/ 디렉터리)"
+        },
+        "template_data": {
+            "type": "text",
+            "nullable": true,
+            "comment": "템플릿 변수 JSON"
+        },
+        "attachments": {
+            "type": "text",
+            "nullable": true,
+            "comment": "첨부 file_meta seq 배열 (JSON)"
+        },
+        "reply_to": {
+            "nullable": true,
+            "comment": "회신 주소"
+        },
+        "ref_entity": {
+            "nullable": true,
+            "comment": "참조 엔티티 이름"
+        },
+        "ref_seq": {
+            "nullable": true,
+            "comment": "참조 레코드 seq"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "smtp",
+                "provider": "${new.provider}",
+                "from": "${new.from}",
+                "to": "${new.to}",
+                "cc": "${new.cc}",
+                "bcc": "${new.bcc}",
+                "subject": "${new.subject}",
+                "body_text": "${new.body_text}",
+                "body_html": "${new.body_html}",
+                "template_name": "${new.template_name}",
+                "template_data": "${new.template_data}",
+                "attachments": "${new.attachments}",
+                "reply_to": "${new.reply_to}",
+                "ref_entity": "${new.ref_entity}",
+                "ref_seq": "${new.ref_seq}"
+            }
+        ]
+    },
+    "read_only": true
+}
