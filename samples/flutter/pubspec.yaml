@@ -1,0 +1,14 @@
+name: entity_server_client
+description: Entity Server client library for Flutter
+version: 1.0.0
+
+environment:
+    sdk: ">=3.0.0 <4.0.0"
+    flutter: ">=3.10.0"
+
+dependencies:
+    flutter:
+        sdk: flutter
+    http: ^1.2.1
+    cryptography: ^2.7.0
+    uuid: ^4.4.0
