@@ -1,0 +1,39 @@
+{
+    "name": "addr_sido",
+    "description": "시/도 마스터 데이터 (data_rgn1)",
+    "license_scope": false,
+    "hard_delete": true,
+    "fields": {
+        "sido": {
+            "index": true,
+            "comment": "시도 정식명칭",
+            "required": true,
+            "unique": true
+        },
+        "sido_short": {
+            "index": true,
+            "comment": "시도 축약명칭",
+            "required": true,
+            "unique": true
+        }
+    },
+    "reset_defaults": [
+        { "sido": "서울특별시", "sido_short": "서울" },
+        { "sido": "인천광역시", "sido_short": "인천" },
+        { "sido": "대전광역시", "sido_short": "대전" },
+        { "sido": "대구광역시", "sido_short": "대구" },
+        { "sido": "부산광역시", "sido_short": "부산" },
+        { "sido": "울산광역시", "sido_short": "울산" },
+        { "sido": "광주광역시", "sido_short": "광주" },
+        { "sido": "세종특별자치시", "sido_short": "세종" },
+        { "sido": "경기도", "sido_short": "경기" },
+        { "sido": "강원도", "sido_short": "강원" },
+        { "sido": "충청북도", "sido_short": "충북" },
+        { "sido": "충청남도", "sido_short": "충남" },
+        { "sido": "경상북도", "sido_short": "경북" },
+        { "sido": "경상남도", "sido_short": "경남" },
+        { "sido": "전라북도", "sido_short": "전북" },
+        { "sido": "전라남도", "sido_short": "전남" },
+        { "sido": "제주특별자치도", "sido_short": "제주" }
+    ]
+}
