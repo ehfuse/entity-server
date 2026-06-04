@@ -1,0 +1,75 @@
+{
+    "name": "organization",
+    "description": "isolated: license 예제 — 이 엔티티가 테넌트(라이선스) 경계를 정의하는 루트 엔티티. license_seq FK 없이 license_seq 컬럼을 직접 소유",
+    "isolated": "license",
+    "fields": {
+        "name": {
+            "index": true,
+            "comment": "조직명",
+            "required": true,
+            "unique": true
+        },
+        "plan": {
+            "index": true,
+            "comment": "구독 플랜",
+            "type": [
+                "free",
+                "starter",
+                "pro",
+                "enterprise"
+            ],
+            "default": "free"
+        },
+        "max_members": {
+            "index": true,
+            "comment": "최대 팀원 수",
+            "type": "uint",
+            "default": 5
+        },
+        "owner_seq": {
+            "index": true,
+            "comment": "소유자 account seq"
+        },
+        "is_active": {
+            "index": true,
+            "comment": "활성 여부 (is_* → TINYINT(1) 자동 추론)",
+            "default": true
+        },
+        "expires_at": {
+            "index": true,
+            "comment": "구독 만료일시 (*_at → DATETIME 자동 추론)"
+        },
+        "billing_email": {
+            "type": "varchar(255)",
+            "comment": "청구용 이메일"
+        },
+        "settings": {
+            "comment": "조직 설정 (중첩 fields 그룹)",
+            "fields": {
+                "theme": {
+                    "type": [
+                        "light",
+                        "dark",
+                        "system"
+                    ],
+                    "comment": "기본 UI 테마",
+                    "default": "system"
+                },
+                "language": {
+                    "type": "varchar(10)",
+                    "comment": "기본 인터페이스 언어",
+                    "default": "ko"
+                },
+                "timezone": {
+                    "type": "varchar(50)",
+                    "comment": "기본 타임존",
+                    "default": "Asia/Seoul"
+                }
+            }
+        }
+    },
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 300
+    }
+}
