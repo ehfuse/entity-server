@@ -1,0 +1,1495 @@
+# 관리자 라우트
+
+`/v1/admin` 엔드포인트 상세 가이드입니다.
+
+> ⚠️ **경고**: 관리자 API는 데이터 삭제, 시스템 초기화 등 위험한 작업을 수행합니다. 최소 권한 원칙과 RBAC 정책으로 보호하세요.
+
+- 공통 인증 헤더 및 에러 응답 형식은 [API 라우트](api-routes.md)를 참조하세요.
+
+<a id="summary"></a>
+
+## 목록
+
+### 엔티티 관리
+
+| No. | 항목                                        | 메서드     | 경로                            |
+| --- | ------------------------------------------- | ---------- | ------------------------------- |
+| 1   | [엔티티 목록 조회](#admin-entities)         | `POST/GET` | `/v1/admin/entities`            |
+| 1-1 | [ERD 스키마 조회](#admin-erd-schema)        | `GET`      | `/v1/admin/erd/schema`          |
+| 2   | [통계 조회](#admin-stats)                   | `POST/GET` | `/v1/admin/:entity/stats`       |
+| 3   | [인덱스 재구축](#admin-rebuild-index)       | `POST`     | `/v1/admin/:entity/reindex`     |
+| 3-1 | [스키마 동기화](#admin-sync-schema)         | `POST`     | `/v1/admin/:entity/sync-schema` |
+| 4   | [엔티티 초기화 (Reset)](#admin-reset)       | `POST`     | `/v1/admin/:entity/reset`       |
+| 5   | [엔티티 비우기 (Truncate)](#admin-truncate) | `POST`     | `/v1/admin/:entity/truncate`    |
+| 6   | [엔티티 삭제 (Drop)](#admin-drop)           | `POST`     | `/v1/admin/:entity/drop`        |
+| 7   | [시스템 전체 초기화](#admin-reset-all)      | `POST`     | `/v1/admin/reset-all`           |
+
+### 엔티티 설정
+
+| No. | 항목                                                 | 메서드 | 경로                                                            |
+| --- | ---------------------------------------------------- | ------ | --------------------------------------------------------------- |
+| 8   | [엔티티 설정 조회](#admin-get-entity-config)         | `GET`  | `/v1/admin/:entity/config`                                      |
+| 9   | [엔티티 설정 저장](#admin-update-entity-config)      | `PUT`  | `/v1/admin/:entity/config`                                      |
+| 9-1 | [엔티티 설정 검증](#admin-validate-entity-config)    | `POST` | `/v1/admin/entity/validate`                                     |
+| 9-2 | [엔티티 설정 정규화](#admin-normalize-entity-config) | `POST` | `/v1/admin/entity/normalize`                                    |
+| 9-3 | [엔티티 추가](#admin-create-entity-config)           | `POST` | `/v1/admin/:entity/create`<br>`/v1/admin/:group/:entity/create` |
+| 9-4 | [엔티티 배치 ensure](#admin-batch-ensure)            | `POST` | `/v1/admin/entities/batch-ensure`                               |
+
+### 설정 관리
+
+| No. | 항목                                        | 메서드  | 경로                        |
+| --- | ------------------------------------------- | ------- | --------------------------- |
+| 10  | [전체 설정 조회](#admin-configs-list)       | `GET`   | `/v1/admin/configs`         |
+| 11  | [도메인별 설정 조회](#admin-configs-get)    | `GET`   | `/v1/admin/configs/:domain` |
+| 12  | [도메인별 설정 수정](#admin-configs-update) | `PATCH` | `/v1/admin/configs/:domain` |
+
+### 역할 관리
+
+| No. | 항목                                | 메서드   | 경로                   |
+| --- | ----------------------------------- | -------- | ---------------------- |
+| 13  | [역할 목록 조회](#admin-roles-list) | `GET`    | `/v1/admin/roles`      |
+| 14  | [역할 단건 조회](#admin-roles-get)  | `GET`    | `/v1/admin/roles/:seq` |
+| 15  | [역할 생성](#admin-roles-create)    | `POST`   | `/v1/admin/roles`      |
+| 16  | [역할 수정](#admin-roles-update)    | `PATCH`  | `/v1/admin/roles/:seq` |
+| 17  | [역할 삭제](#admin-roles-delete)    | `DELETE` | `/v1/admin/roles/:seq` |
+
+### API 키 관리
+
+| No. | 항목                                              | 메서드   | 경로                                        |
+| --- | ------------------------------------------------- | -------- | ------------------------------------------- |
+| 18  | [API 키 목록 조회](#admin-apikeys-list)           | `GET`    | `/v1/admin/api-keys`                        |
+| 19  | [API 키 단건 조회](#admin-apikeys-get)            | `GET`    | `/v1/admin/api-keys/:seq`                   |
+| 20  | [API 키 생성](#admin-apikeys-create)              | `POST`   | `/v1/admin/api-keys`                        |
+| 21  | [API 키 수정](#admin-apikeys-update)              | `PATCH`  | `/v1/admin/api-keys/:seq`                   |
+| 22  | [API 키 삭제](#admin-apikeys-delete)              | `DELETE` | `/v1/admin/api-keys/:seq`                   |
+| 23  | [API 키 시크릿 재생성](#admin-apikeys-regenerate) | `POST`   | `/v1/admin/api-keys/:seq/regenerate-secret` |
+
+### 계정 관리
+
+| No. | 항목                                   | 메서드   | 경로                      |
+| --- | -------------------------------------- | -------- | ------------------------- |
+| 24  | [계정 목록 조회](#admin-accounts-list) | `GET`    | `/v1/admin/accounts`      |
+| 25  | [계정 단건 조회](#admin-accounts-get)  | `GET`    | `/v1/admin/accounts/:seq` |
+| 26  | [계정 생성](#admin-accounts-create)    | `POST`   | `/v1/admin/accounts`      |
+| 27  | [계정 수정](#admin-accounts-update)    | `PATCH`  | `/v1/admin/accounts/:seq` |
+| 28  | [계정 삭제](#admin-accounts-delete)    | `DELETE` | `/v1/admin/accounts/:seq` |
+| 28-1 | [계정 2FA 비활성화](#admin-accounts-2fa-disable) | `DELETE` | `/v1/admin/accounts/:seq/2fa` |
+
+### 라이선스 관리
+
+| No. | 항목                                       | 메서드   | 경로                      |
+| --- | ------------------------------------------ | -------- | ------------------------- |
+| 29  | [라이선스 목록 조회](#admin-licenses-list) | `GET`    | `/v1/admin/licenses`      |
+| 30  | [라이선스 단건 조회](#admin-licenses-get)  | `GET`    | `/v1/admin/licenses/:seq` |
+| 31  | [라이선스 생성](#admin-licenses-create)    | `POST`   | `/v1/admin/licenses`      |
+| 32  | [라이선스 수정](#admin-licenses-update)    | `PATCH`  | `/v1/admin/licenses/:seq` |
+| 33  | [라이선스 삭제](#admin-licenses-delete)    | `DELETE` | `/v1/admin/licenses/:seq` |
+
+### 백업 관리 (backup.json 활성화 시)
+
+| No. | 항목                                   | 메서드 | 경로                       |
+| --- | -------------------------------------- | ------ | -------------------------- |
+| 34  | [백업 즉시 실행](#admin-backup-run)    | `POST` | `/v1/admin/backup/run`     |
+| 35  | [백업 상태 조회](#admin-backup-status) | `POST` | `/v1/admin/backup/status`  |
+| 36  | [백업 목록 조회](#admin-backup-list)   | `POST` | `/v1/admin/backup/list`    |
+| 37  | [백업 복원](#admin-backup-restore)     | `POST` | `/v1/admin/backup/restore` |
+| 38  | [백업 세션 삭제](#admin-backup-delete) | `POST` | `/v1/admin/backup/delete`  |
+
+---
+
+## 엔티티 관리 (`/v1/admin`)
+
+<a id="admin-entities"></a>
+
+### 1. 엔티티 목록 조회
+
+등록된 엔티티 설정 목록을 페이지네이션으로 조회합니다.
+
+**엔드포인트**: `POST/GET /v1/admin/entities`
+
+**쿼리 파라미터**:
+
+- `page` (int, default: 1) - 페이지 번호
+- `page_size` (int, default: 20) - 페이지당 항목 수
+
+**설명**:
+
+- 각 엔티티 항목에 `table_summary`를 포함해 레코드 수/테이블 크기를 함께 반환합니다.
+- 응답의 `data.summary`는 현재 페이지 범위(`scope: page`)의 합계를 제공합니다.
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "id": "user",
+                "name": "user",
+                "description": "사용자 엔티티",
+                "fields": [{ "name": "email", "type": "string" }],
+                "hooks": {},
+                "table_summary": {
+                    "data_table": "entity_data_account",
+                    "index_table": "entity_idx_account",
+                    "history_table": "entity_history_account",
+                    "total_records": 120,
+                    "deleted_records": 3,
+                    "data_size_bytes": 1048576,
+                    "index_size_bytes": 262144,
+                    "history_size_bytes": 131072,
+                    "total_size_bytes": 1441792
+                },
+                "created_at": "",
+                "updated_at": ""
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 20,
+        "summary": {
+            "scope": "page",
+            "entity_count": 1,
+            "total_records": 120,
+            "deleted_records": 3,
+            "total_size_bytes": 1441792
+        }
+    }
+}
+```
+
+> `*_size_bytes` 값은 DB 드라이버/스토리지 엔진 특성에 따라 0 또는 근사치로 반환될 수 있습니다.
+
+> 엔티티 단건 메타 정보가 필요하면 `POST/GET /v1/entity/:entity/meta`를 사용하세요.
+
+---
+
+<a id="admin-erd-schema"></a>
+
+### 1-1. ERD 스키마 조회
+
+전체 엔티티의 ERD(Entity-Relationship Diagram) 메타데이터를 엔티티명 순으로 정렬하여 반환합니다. Admin UI의 ERD 뷰에서 사용합니다.
+
+**엔드포인트**: `GET /v1/admin/erd/schema`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "entities": [
+            { "name": "user", "fields": [], "relations": [] }
+        ]
+    }
+}
+```
+
+> 메타 구성에 실패한 엔티티는 응답에서 조용히 제외됩니다(`entities` 배열에 포함되지 않음).
+
+---
+
+<a id="admin-stats"></a>
+
+### 2. 통계 조회
+
+엔티티의 레코드 통계를 조회합니다.
+
+**엔드포인트**: `POST/GET /v1/admin/:entity/stats`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "total": 100,
+        "active": 80,
+        "deleted": 20
+    }
+}
+```
+
+---
+
+<a id="admin-rebuild-index"></a>
+
+### 3. 인덱스 재구축
+
+인덱스 스키마를 동기화한 뒤 인덱스 데이터를 재구성합니다.
+
+**엔드포인트**: `POST /v1/admin/:entity/reindex`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "Index schema synced and data rebuilt successfully",
+    "schema": {
+        "added": [],
+        "dropped": [],
+        "unchanged": []
+    },
+    "indexed": 100
+}
+```
+
+---
+
+<a id="admin-sync-schema"></a>
+
+### 3-1. 스키마 동기화 (sync-schema)
+
+인덱스 데이터 재구성 없이 스키마(컬럼 comment 등 메타)만 동기화합니다.
+
+- comment 변경처럼 데이터가 아닌 스키마 메타만 바뀐 경우에 사용합니다.
+- 설정 저장(`PUT /config`) 시 comment만 변경된 경우 자동으로 호출됩니다.
+
+**엔드포인트**: `POST /v1/admin/:entity/sync-schema`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "Index schema synced successfully",
+    "schema": {
+        "added": [],
+        "dropped": [],
+        "unchanged": ["name", "email"]
+    }
+}
+```
+
+---
+
+<a id="admin-reset"></a>
+
+### 4. 엔티티 초기화 (Reset)
+
+엔티티 관련 테이블(data/index/history)을 삭제 후 재생성합니다.
+
+**엔드포인트**: `POST /v1/admin/:entity/reset`
+
+**쿼리 파라미터**:
+
+- `confirm` (string, required) - `RESET_엔티티명` 확인 (`confirm=RESET_account`)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "Entity reset successfully (tables dropped and recreated)"
+}
+```
+
+---
+
+<a id="admin-truncate"></a>
+
+### 5. 엔티티 비우기 (Truncate)
+
+엔티티 관련 테이블(data/index/history)의 데이터를 비웁니다 (auto increment 초기화).
+
+**엔드포인트**: `POST /v1/admin/:entity/truncate`
+
+**쿼리 파라미터**:
+
+- `confirm` (string, required) - `TRUNCATE_엔티티명` 확인 (`confirm=TRUNCATE_account`)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "Entity truncated successfully (data deleted, auto increment reset)"
+}
+```
+
+---
+
+<a id="admin-drop"></a>
+
+### 6. 엔티티 삭제 (Drop)
+
+엔티티 관련 테이블(data/index/history)과 `entities` 메타 row를 삭제합니다.
+
+**엔드포인트**: `POST /v1/admin/:entity/drop`
+
+**쿼리 파라미터**:
+
+- `confirm` (string, required) - `DROP_엔티티명` 확인 (`confirm=DROP_account`)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "Entity dropped successfully (tables + entities row removed)"
+}
+```
+
+---
+
+<a id="admin-reset-all"></a>
+
+### 7. 시스템 전체 초기화
+
+모든 엔티티를 초기화합니다.
+
+**엔드포인트**: `POST /v1/admin/reset-all`
+
+**쿼리 파라미터**:
+
+- `confirm` (string, required) - `RESET_ALL_ENTITIES`
+
+**사전 조건**:
+
+- 서버 환경변수 `ENCRYPTION_KEY`가 설정되어 있어야 합니다.
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "All entity tables reset successfully",
+    "result": {
+        "dropped": ["entity_data_account", "entity_idx_account"],
+        "created": ["entity_data_account", "entity_idx_account"]
+    }
+}
+```
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 엔티티 설정 (`/v1/admin/:entity/config`, `/v1/admin/entity/validate`, `/v1/admin/entity/normalize`)
+
+<a id="admin-get-entity-config"></a>
+
+### 8. 엔티티 설정 조회
+
+엔티티의 설정 파일 내용을 raw JSON 텍스트로 반환합니다.
+
+**엔드포인트**: `GET /v1/admin/:entity/config`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": "{\n    \"name\": \"user\",\n    \"index\": { ... }\n}\n"
+}
+```
+
+---
+
+<a id="admin-update-entity-config"></a>
+
+### 9. 엔티티 설정 저장
+
+엔티티 설정 파일을 저장합니다. **엔티티가 존재하지 않으면 신규 생성**, 이미 존재하면 수정입니다.  
+저장 후 변경 내용을 자동으로 분석하여 필요한 후처리를 수행합니다.
+
+**엔드포인트**: `PUT /v1/admin/:entity/config`
+
+**요청 헤더**: `Content-Type: application/json`
+
+**요청 본문**: 엔티티 설정 JSON 전체 (아래 필드 참조)
+
+> `:entity` (URL 경로)와 본문의 `name` 필드가 일치해야 합니다.
+
+---
+
+#### 신규 생성 흐름 (Admin UI 기준)
+
+1. Admin UI에서 "추가" 버튼 클릭 → 기본 템플릿이 Monaco 에디터에 로드됨
+2. `name` 필드를 포함한 설정 JSON 작성
+3. "만들기" 버튼 클릭 시:
+    - 프론트엔드에서 기존 엔티티 목록과 비교하여 **이름 중복을 사전 차단**
+    - `POST /v1/admin/entity/validate`로 서버 검증 수행
+    - `POST /v1/admin/entity/normalize`로 서버 정규화 수행
+    - 정규화된 결과로 `POST /v1/admin/{name}/create` 호출
+4. 서버가 설정 파일 생성 후 스키마(테이블) 자동 생성
+
+#### 기본 템플릿 (신규 생성 시 에디터 초기값)
+
+```json
+{
+    "name": "",
+    "description": "",
+    "enabled": true,
+    "db_group": "",
+    "index": {
+        "field_name": {
+            "type": "varchar(255)",
+            "comment": "",
+            "required": false,
+            "nullable": false,
+            "unique": false,
+            "hash": false,
+            "default": null
+        }
+    },
+    "hash": [],
+    "required": [],
+    "nullable": [],
+    "unique": [],
+    "types": {},
+    "comments": {},
+    "defaults": {},
+    "fk": {},
+    "optimistic_lock": false,
+    "history_ttl": 94608000,
+    "license_scope": true,
+    "hard_delete": false,
+    "cache": {
+        "enabled": false,
+        "ttl_seconds": 0
+    },
+    "reset_defaults": [],
+    "hooks": {
+        "before_insert": [],
+        "after_insert": [],
+        "before_update": [],
+        "after_update": [],
+        "before_delete": [],
+        "after_delete": [],
+        "after_get": [],
+        "after_list": []
+    }
+}
+```
+
+> `history_ttl` 기본값 `94608000`은 3년(= 3 × 365 × 24 × 3600초)입니다.
+
+---
+
+#### 후처리 자동 수행 규칙 (수정 시)
+
+| 변경 유형                                                             | action        | 자동 처리                   |
+| --------------------------------------------------------------------- | ------------- | --------------------------- |
+| index 필드 추가/삭제, type/required/nullable/unique/hash/default 변경 | `reindex`     | 스키마 동기화 + 전체 재색인 |
+| comment만 변경                                                        | `sync-schema` | ALTER TABLE comment만 수행  |
+| index 외 변경 (description 등)                                        | `none`        | 없음                        |
+
+**응답 (reindex)**:
+
+```json
+{
+    "ok": true,
+    "action": "reindex",
+    "message": "설정 저장 완료. index 구조 변경이 감지되어 스키마 동기화 및 재색인을 수행했습니다.",
+    "schema": { "added": ["phone"], "dropped": [], "unchanged": ["name"] },
+    "indexed": 500
+}
+```
+
+**응답 (sync-schema)**:
+
+```json
+{
+    "ok": true,
+    "action": "sync-schema",
+    "message": "설정 저장 완료. comment 변경이 감지되어 스키마를 동기화했습니다.",
+    "schema": { "added": [], "dropped": [], "unchanged": ["name", "email"] }
+}
+```
+
+**응답 (변경 없음 / 신규 생성)**:
+
+```json
+{
+    "ok": true,
+    "action": "none",
+    "message": "설정 저장 완료. index 변경 없음."
+}
+```
+
+**에러 케이스**:
+
+```json
+{ "ok": false, "message": "JSON 문법 오류: ..." }
+{ "ok": false, "message": "JSON의 name 필드(user2)가 경로의 엔티티명(user)과 일치하지 않습니다." }
+```
+
+---
+
+<a id="admin-validate-entity-config"></a>
+
+### 9-1. 엔티티 설정 검증
+
+저장 전에 서버 규칙으로 엔티티 설정을 검증합니다.
+
+**엔드포인트**: `POST /v1/admin/entity/validate`
+
+**요청 헤더**: `Content-Type: application/json`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "message": "valid"
+}
+```
+
+---
+
+<a id="admin-normalize-entity-config"></a>
+
+### 9-2. 엔티티 설정 정규화
+
+저장 전에 서버 규칙으로 엔티티 설정을 정규화하고 완성된 JSON을 반환합니다.
+
+**엔드포인트**: `POST /v1/admin/entity/normalize`
+
+**요청 헤더**: `Content-Type: application/json`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "json": "{\n    \"name\": \"account\", ... }\n",
+        "rules": [
+            "removed enabled:true (default)",
+            "reordered index field keys"
+        ]
+    }
+}
+```
+
+---
+
+<a id="admin-create-entity-config"></a>
+
+### 9-3. 엔티티 추가
+
+정규화된 설정 JSON으로 새 엔티티를 생성합니다. 엔티티 그룹(`:group`)을 경로 파라미터로 지정하면 서버의 `configs/` 폴더 하위에 해당 그룹 이름의 서브폴더 안에 설정 파일이 생성됩니다.
+
+**엔드포인트**:
+
+- `POST /v1/admin/:entity/create` — 그룹 없음 (default, `configs/:entity.json`)
+- `POST /v1/admin/:group/:entity/create` — 그룹 지정 (`configs/:group/:entity.json`)
+
+#### 엔티티 그룹
+
+엔티티 그룹은 `configs/` 폴더 안의 저장 경로를 결정합니다. 뎁스는 1단계만 허용합니다.
+
+| 호출 방식                             | configs 저장 경로              |
+| ------------------------------------- | ------------------------------ |
+| 그룹 없음 (`/:entity/create`)         | `configs/:entity.json`         |
+| `default` (`/default/:entity/create`) | `configs/:entity.json`         |
+| `crm` (`/crm/:entity/create`)         | `configs/crm/:entity.json`     |
+| `billing` (`/billing/:entity/create`) | `configs/billing/:entity.json` |
+
+- 그룹을 생략하거나 `default`를 지정하면 결과가 동일합니다: `configs/` 바로 아래에 파일이 생성됩니다 (서브폴더 없음).
+- `default` 외의 그룹은 `configs/:group/` 서브폴더 아래에 파일이 생성됩니다.
+- 서브폴더가 존재하지 않으면 서버가 자동 생성합니다.
+- 그룹명은 영문 소문자·숫자·하이픈(`-`)·언더스코어(`_`)만 허용하며, 중첩 경로(`a/b`)는 허용하지 않습니다.
+
+#### 경로 파라미터
+
+| 파라미터  | 타입   | 필수 | 설명                                                                      |
+| --------- | ------ | ---- | ------------------------------------------------------------------------- |
+| `:group`  | string | ❌   | 엔티티 그룹명. 생략하거나 `default`로 지정하면 `configs/` 바로 아래 저장. |
+| `:entity` | string | ✅   | 엔티티명. 요청 본문의 `name` 필드와 일치해야 합니다.                      |
+
+#### 요청
+
+**헤더**: `Content-Type: application/json`
+
+**요청 본문**: `POST /v1/admin/entity/normalize` 응답의 `data.json`을 그대로 사용합니다.
+
+```json
+{
+    "name": "product",
+    "description": "상품 엔티티",
+    "db_group": "",
+    "index": {
+        "title": {
+            "type": "varchar(255)",
+            "comment": "상품명",
+            "required": true,
+            "nullable": false,
+            "unique": false,
+            "hash": false,
+            "default": null
+        }
+    },
+    "hash": [],
+    "required": ["title"],
+    "nullable": [],
+    "unique": [],
+    "types": {},
+    "comments": { "title": "상품명" },
+    "defaults": {},
+    "fk": {},
+    "optimistic_lock": false,
+    "history_ttl": 94608000,
+    "license_scope": true,
+    "hard_delete": false,
+    "cache": { "enabled": false, "ttl_seconds": 0 },
+    "reset_defaults": [],
+    "hooks": {
+        "before_insert": [],
+        "after_insert": [],
+        "before_update": [],
+        "after_update": [],
+        "before_delete": [],
+        "after_delete": [],
+        "after_get": [],
+        "after_list": []
+    }
+}
+```
+
+#### 처리 흐름
+
+1. `:entity`와 본문 `name` 필드가 일치하는지 검증합니다.
+2. 해당 경로에 설정 파일이 이미 존재하는지 확인합니다.
+    - **존재하지 않으면** → 신규 생성 (3번으로 진행)
+    - **이미 존재하면** → **additive-only 스키마 동기화** 수행 (아래 설명 참고)
+3. 그룹이 없거나 `default`이면 `configs/` 바로 아래, 그 외에는 `configs/:group/` 서브폴더에 저장합니다. 서브폴더가 없으면 자동 생성합니다.
+4. 결정된 경로(`configs/:entity.json` 또는 `configs/:group/:entity.json`)로 설정 파일을 저장합니다.
+5. 저장된 설정을 기반으로 DB 테이블(`entity_data_*`, `entity_idx_*`, `entity_history_*`)을 자동 생성합니다.
+6. 엔티티를 서버 런타임에 등록합니다 (재시작 불필요).
+
+#### 이미 존재하는 엔티티에 대한 additive sync
+
+`POST /create`는 **멱등(idempotent)** 하게 동작합니다. 엔티티 설정 파일이 이미 존재할 때 덮어쓰지 않고, 다음 규칙으로 **안전한 추가 변경만 적용**합니다:
+
+| 변경 종류                          | 처리                       |
+| ---------------------------------- | -------------------------- |
+| 신규 필드 추가                     | ✅ 적용                    |
+| 기존 필드에 index/unique 신규 추가 | ✅ 적용                    |
+| 신규 복합 unique 그룹 추가         | ✅ 적용                    |
+| 기존 필드 타입 변경                | ❌ 무시 (데이터 호환성)    |
+| 기존 필드 삭제                     | ❌ 무시 (데이터 손실 방지) |
+
+추가 변경이 없으면 `action: "already_exists"`를 반환합니다.
+추가 변경이 있으면 스키마를 동기화하고 `action: "synced"`, `changes` 목록을 반환합니다.
+
+> **자동 등록 활용**: 외부 초기화 도구가 `entities/*.json`을 기준으로 서버 시작 시 `POST /create`를 호출하면, 멱등하게 엔티티를 자동 등록할 수 있습니다.
+
+#### 응답
+
+**신규 생성 (200)**:
+
+```json
+{
+    "ok": true,
+    "action": "none"
+}
+```
+
+> `action`은 신규 생성 시 변경 감지 결과에 따라 `"none"` | `"sync-schema"` | `"reindex"` | `"saved"` 중 하나를 반환합니다.
+
+**이미 존재 + 변경 없음 (200)**:
+
+```json
+{
+    "ok": true,
+    "action": "already_exists"
+}
+```
+
+**이미 존재 + additive 변경 적용 (200)**:
+
+```json
+{
+    "ok": true,
+    "action": "synced",
+    "changes": ["add field: phone", "add index field: phone_idx"],
+    "schema": { "created": [], "altered": ["entity_idx_product"] }
+}
+```
+
+#### 에러 케이스
+
+```json
+{ "ok": false, "message": "JSON의 name 필드(product2)가 경로의 엔티티명(product)과 일치하지 않습니다." }
+{ "ok": false, "message": "허용되지 않는 그룹명입니다: my group" }
+{ "ok": false, "message": "그룹명에 중첩 경로는 허용되지 않습니다: a/b" }
+{ "ok": false, "message": "JSON 문법 오류: ..." }
+```
+
+#### 호출 예시 (Admin UI 전체 흐름)
+
+```bash
+# 1. 검증
+curl -X POST http://localhost:47200/v1/admin/entity/validate \
+  -H "Content-Type: application/json" \
+  -d '{"name":"product", ...}'
+
+# 2. 정규화
+curl -X POST http://localhost:47200/v1/admin/entity/normalize \
+  -H "Content-Type: application/json" \
+  -d '{"name":"product", ...}'
+
+# 3. 생성 (그룹 없음 = configs/:entity.json)
+curl -X POST http://localhost:47200/v1/admin/product/create \
+  -H "Content-Type: application/json" \
+  -d '<normalize 응답의 data.json>'
+
+# 또는 그룹 지정 (crm = configs/crm/:entity.json)
+curl -X POST http://localhost:47200/v1/admin/crm/product/create \
+  -H "Content-Type: application/json" \
+  -d '<normalize 응답의 data.json>'
+```
+
+↑ [목록으로 이동](#summary)
+
+---
+
+<a id="admin-batch-ensure"></a>
+
+### 9-4. 엔티티 배치 ensure
+
+여러 엔티티 설정을 한 번에 생성/동기화합니다. Admin UI의 일괄 배포에서 사용합니다. (`/:entity` 패턴보다 먼저 등록되어 경로 충돌이 없습니다.)
+
+**엔드포인트**: `POST /v1/admin/entities/batch-ensure`
+
+**요청 본문** — 두 가지 형식을 모두 허용합니다.
+
+1. flat 배열 (legacy):
+
+```json
+[
+    { "name": "user", "source": "...", "config": { ... } },
+    { "name": "product", "source": "...", "config": { ... } }
+]
+```
+
+2. grouped 트리 (`plugins`/`routes`/`schedules` 폴더 트리 + 옵션):
+
+```json
+{
+    "items": [{ "name": "user", "config": { ... } }],
+    "plugins": [{ "name": "crm", "entities": [{ "name": "lead", "config": { ... } }] }],
+    "routes": [],
+    "schedules": [],
+    "prune_mode": "all"
+}
+```
+
+- `prune_mode` (string, default: `all`) — `all` 또는 `sent_files`. 그 외 값은 400 에러.
+  - `all`: 보내지 않은 기존 엔티티 설정까지 정리(prune) 대상.
+  - `sent_files`: 이번 요청에 포함된 파일 범위 내에서만 정리.
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "results": [
+        { "name": "user", "action": "created", "schema": { ... } },
+        { "name": "product", "action": "synced" },
+        { "name": "bad", "error": "..." }
+    ]
+}
+```
+
+- `action`: `created` | `synced` 등. 항목별 실패는 `error` 필드로 표시됩니다(전체 요청은 200).
+- `items`가 비어 있고 `prune_mode`가 `all`이면 prune만 수행하고 빈 `results`를 반환합니다.
+
+---
+
+## 설정 관리 (`/v1/admin/configs`)
+
+> **주의**: 설정 변경은 서버 동작에 직접 영향을 줍니다. 수정 전 백업이 자동으로 생성됩니다 (`configs/.backup/`).
+> 민감 필드(`password`, `secret`, `api_keys`, `redis_password`)는 응답에서 `"********"`으로 마스킹됩니다.
+
+<a id="admin-configs-list"></a>
+
+### 10. 전체 설정 조회
+
+서버의 모든 설정 도메인(server/database/security/jwt/cache/logging)을 일괄 조회합니다.
+
+**엔드포인트**: `GET /v1/admin/configs`
+
+**요청 예시**:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  http://localhost:47200/v1/admin/configs
+```
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "domain": "server",
+                "label": "서버",
+                "config": {
+                    "host": "0.0.0.0",
+                    "port": 47200,
+                    "prefork": false
+                },
+                "exists": true
+            },
+            {
+                "domain": "database",
+                "label": "데이터베이스",
+                "config": {
+                    "driver": "mysql",
+                    "host": "localhost",
+                    "port": 3306,
+                    "name": "entity_db",
+                    "user": "root",
+                    "password": "********"
+                },
+                "exists": true
+            }
+        ],
+        "total": 6
+    }
+}
+```
+
+**도메인 목록**:
+
+| domain     | label        | 파일            |
+| ---------- | ------------ | --------------- |
+| `server`   | 서버         | `server.json`   |
+| `database` | 데이터베이스 | `database.json` |
+| `security` | 보안         | `security.json` |
+| `jwt`      | JWT 인증     | `jwt.json`      |
+| `cache`    | 캐시         | `cache.json`    |
+| `logging`  | 로깅         | `logging.json`  |
+
+---
+
+<a id="admin-configs-get"></a>
+
+### 11. 도메인별 설정 조회
+
+특정 도메인의 설정을 단건 조회합니다.
+
+**엔드포인트**: `GET /v1/admin/configs/:domain`
+
+**경로 파라미터**:
+
+- `domain` (string, 필수) — `server` | `database` | `security` | `jwt` | `cache` | `logging`
+
+**요청 예시**:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  http://localhost:47200/v1/admin/configs/jwt
+```
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "domain": "jwt",
+        "label": "JWT 인증",
+        "config": {
+            "secret": "********",
+            "expires_in": 3600,
+            "refresh_expires_in": 604800
+        },
+        "exists": true
+    }
+}
+```
+
+**에러 케이스**:
+
+```json
+{ "ok": false, "message": "허용되지 않은 설정 도메인입니다: unknown" }
+```
+
+---
+
+<a id="admin-configs-update"></a>
+
+### 12. 도메인별 설정 수정
+
+특정 도메인의 설정을 PATCH 방식으로 병합 업데이트합니다. 제출한 필드만 덮어쓰고 나머지는 기존 값을 유지합니다.
+
+**엔드포인트**: `PATCH /v1/admin/configs/:domain`
+
+**경로 파라미터**:
+
+- `domain` (string, 필수) — `server` | `database` | `security` | `jwt` | `cache` | `logging`
+
+**요청 본문** (변경할 필드만 포함):
+
+```json
+{
+    "port": 47201,
+    "prefork": true
+}
+```
+
+**동작**:
+
+- 기존 설정 파일을 읽어 요청 본문과 병합합니다.
+- 민감 필드(`"********"`)가 그대로 전송되면 기존 원래 값으로 복원합니다.
+- 저장 전 `configs/.backup/<domain>_<timestamp>.json`에 자동 백업합니다.
+- 원자적 쓰기(tmp 파일 생성 후 rename)로 파일 손상을 방지합니다.
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "domain": "server",
+        "label": "서버",
+        "config": {
+            "host": "0.0.0.0",
+            "port": 47201,
+            "prefork": true
+        }
+    }
+}
+```
+
+**에러 케이스**:
+
+```json
+{ "ok": false, "message": "요청 본문 파싱 실패" }
+{ "ok": false, "message": "허용되지 않은 설정 도메인입니다: unknown" }
+{ "ok": false, "message": "설정 파일 저장 실패: server" }
+```
+
+> ⚠️ **주의**: 변경된 설정은 서버 재시작 후 완전히 적용됩니다. 일부 항목(예: 포트)은 재시작 없이는 반영되지 않습니다.
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 역할 관리 (`/v1/admin/roles`)
+
+> RBAC 역할을 관리합니다. 역할은 권한(permissions) 목록과 설명으로 구성됩니다. 변경 사항은 서버 보안 설정에 즉시 반영됩니다.
+
+<a id="admin-roles-list"></a>
+
+### 13. 역할 목록 조회
+
+**엔드포인트**: `GET /v1/admin/roles`
+
+**쿼리 파라미터**: `page` (default: 1), `page_size` (default: 100)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "seq": 1,
+                "name": "admin",
+                "permissions": ["*"],
+                "description": "전체 권한"
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 100
+    }
+}
+```
+
+---
+
+<a id="admin-roles-get"></a>
+
+### 14. 역할 단건 조회
+
+**엔드포인트**: `GET /v1/admin/roles/:seq`
+
+**응답**: `{ "ok": true, "data": { "seq": 1, "name": "admin", "permissions": ["*"] } }`
+
+---
+
+<a id="admin-roles-create"></a>
+
+### 15. 역할 생성
+
+**엔드포인트**: `POST /v1/admin/roles`
+
+**요청 본문**:
+
+```json
+{
+    "name": "editor",
+    "permissions": ["entity:read", "entity:list", "entity:create"],
+    "description": "편집자"
+}
+```
+
+**응답**: `{ "ok": true, "seq": 2 }`
+
+---
+
+<a id="admin-roles-update"></a>
+
+### 16. 역할 수정
+
+**엔드포인트**: `PATCH /v1/admin/roles/:seq`
+
+**요청 본문** (변경할 필드만 포함): `{ "permissions": ["entity:*"] }`
+
+**응답**: `{ "ok": true }`
+
+---
+
+<a id="admin-roles-delete"></a>
+
+### 17. 역할 삭제
+
+**엔드포인트**: `DELETE /v1/admin/roles/:seq`
+
+**응답**: `{ "ok": true, "deleted": 2 }`
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## API 키 관리 (`/v1/admin/api-keys`)
+
+> API 키를 생성·관리하고 역할을 바인딩합니다. 시크릿(`hmac_secret`)은 응답에서 마스킹됩니다.
+
+<a id="admin-apikeys-list"></a>
+
+### 18. API 키 목록 조회
+
+**엔드포인트**: `GET /v1/admin/api-keys`
+
+**쿼리 파라미터**: `page` (default: 1), `page_size` (default: 50)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "seq": 1,
+                "name": "main-key",
+                "key": "abc123...",
+                "hmac_secret": "********",
+                "role": "admin",
+                "entities": ["*"],
+                "description": "기본 관리 키"
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 50
+    }
+}
+```
+
+---
+
+<a id="admin-apikeys-get"></a>
+
+### 19. API 키 단건 조회
+
+**엔드포인트**: `GET /v1/admin/api-keys/:seq`
+
+**응답**: `{ "ok": true, "data": { ... } }`
+
+---
+
+<a id="admin-apikeys-create"></a>
+
+### 20. API 키 생성
+
+**엔드포인트**: `POST /v1/admin/api-keys`
+
+**요청 본문**:
+
+```json
+{
+    "name": "service-key",
+    "role": "editor",
+    "entities": ["user", "product"],
+    "description": "서비스용 키"
+}
+```
+
+**응답**: `{ "ok": true, "seq": 2 }`
+
+---
+
+<a id="admin-apikeys-update"></a>
+
+### 21. API 키 수정
+
+**엔드포인트**: `PATCH /v1/admin/api-keys/:seq`
+
+**요청 본문** (변경할 필드만 포함): `{ "role": "viewer", "description": "읽기 전용" }`
+
+**응답**: `{ "ok": true }`
+
+---
+
+<a id="admin-apikeys-delete"></a>
+
+### 22. API 키 삭제
+
+**엔드포인트**: `DELETE /v1/admin/api-keys/:seq`
+
+**응답**: `{ "ok": true, "deleted": 2 }`
+
+---
+
+<a id="admin-apikeys-regenerate"></a>
+
+### 23. API 키 시크릿 재생성
+
+HMAC 서명에 사용되는 `hmac_secret`을 새로 생성합니다.
+
+**엔드포인트**: `POST /v1/admin/api-keys/:seq/regenerate-secret`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "hmac_secret": "새로 생성된 시크릿 값"
+}
+```
+
+> ⚠️ 재생성 즉시 기존 시크릿은 무효화됩니다. 클라이언트 설정을 함께 갱신하세요.
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 계정 관리 (`/v1/admin/accounts`)
+
+> `account` 엔티티의 관리자 전용 CRUD입니다.
+
+<a id="admin-accounts-list"></a>
+
+### 24. 계정 목록 조회
+
+**엔드포인트**: `GET /v1/admin/accounts`
+
+**쿼리 파라미터**: `page` (default: 1), `page_size` (default: 50), `search` (email 필터)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "seq": 1,
+                "user_seq": 10,
+                "email": "admin@example.com",
+                "status": "active",
+                "rbac_role": "admin"
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 50
+    }
+}
+```
+
+---
+
+<a id="admin-accounts-get"></a>
+
+### 25. 계정 단건 조회
+
+**엔드포인트**: `GET /v1/admin/accounts/:seq`
+
+**응답**: `{ "ok": true, "data": { ... } }`
+
+---
+
+<a id="admin-accounts-create"></a>
+
+### 26. 계정 생성
+
+**엔드포인트**: `POST /v1/admin/accounts`
+
+**요청 본문**:
+
+```json
+{
+    "user_seq": 10,
+    "email": "user@example.com",
+    "status": "active",
+    "rbac_role": "viewer"
+}
+```
+
+**응답**: `{ "ok": true, "seq": 2 }` (HTTP 201)
+
+---
+
+<a id="admin-accounts-update"></a>
+
+### 27. 계정 수정
+
+**엔드포인트**: `PATCH /v1/admin/accounts/:seq`
+
+**요청 본문** (변경할 필드만 포함): `{ "rbac_role": "editor", "status": "suspended" }`
+
+**응답**: `{ "ok": true }`
+
+---
+
+<a id="admin-accounts-delete"></a>
+
+### 28. 계정 삭제
+
+**엔드포인트**: `DELETE /v1/admin/accounts/:seq`
+
+**응답**: `{ "ok": true, "deleted": 2 }`
+
+---
+
+<a id="admin-accounts-2fa-disable"></a>
+
+### 28-1. 계정 2FA 비활성화
+
+> 2FA 기능이 활성화된 경우에만 라우트가 등록됩니다. 관리자(`rbac_role = admin`)만 호출할 수 있습니다.
+
+대상 계정의 2FA(TOTP)를 강제로 해제합니다(시크릿·복구코드·잠금 상태 초기화). 사용자가 2FA 인증기를 분실했을 때 사용합니다.
+
+**엔드포인트**: `DELETE /v1/admin/accounts/:seq/2fa`
+
+**응답**: `{ "ok": true, "message": "2FA disabled for account 5" }`
+
+**에러**:
+
+- `403` — 관리자가 아님 (`Admin access required`)
+- `400` — 잘못된 seq, 또는 해당 계정에 2FA가 활성화되어 있지 않음
+- `404` — 계정 없음
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 라이선스 관리 (`/v1/admin/licenses`)
+
+> `license` 엔티티의 관리자 전용 CRUD입니다. 라이선스는 엔티티 접근 범위와 레코드 수 제한을 정의합니다.
+
+<a id="admin-licenses-list"></a>
+
+### 29. 라이선스 목록 조회
+
+**엔드포인트**: `GET /v1/admin/licenses`
+
+**쿼리 파라미터**: `page` (default: 1), `page_size` (default: 50), `status` (`active` | `expired` | `suspended` | `pending`)
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": {
+        "items": [
+            {
+                "seq": 1,
+                "key": "LIC-XXXX",
+                "description": "기본 라이선스",
+                "scope": "global",
+                "entities": ["*"],
+                "max_records": 10000,
+                "status": "active",
+                "expires_at": "2027-01-01T00:00:00Z"
+            }
+        ],
+        "total": 1,
+        "page": 1,
+        "page_size": 50
+    }
+}
+```
+
+---
+
+<a id="admin-licenses-get"></a>
+
+### 30. 라이선스 단건 조회
+
+**엔드포인트**: `GET /v1/admin/licenses/:seq`
+
+**응답**: `{ "ok": true, "data": { ... } }`
+
+---
+
+<a id="admin-licenses-create"></a>
+
+### 31. 라이선스 생성
+
+**엔드포인트**: `POST /v1/admin/licenses`
+
+**요청 본문**:
+
+```json
+{
+    "key": "LIC-2026-001",
+    "description": "서비스 A 라이선스",
+    "scope": "entity",
+    "entities": ["user", "product"],
+    "max_records": 5000,
+    "status": "active",
+    "expires_at": "2027-12-31T23:59:59Z"
+}
+```
+
+**응답**: `{ "ok": true, "seq": 2 }` (HTTP 201)
+
+---
+
+<a id="admin-licenses-update"></a>
+
+### 32. 라이선스 수정
+
+**엔드포인트**: `PATCH /v1/admin/licenses/:seq`
+
+**요청 본문** (변경할 필드만 포함): `{ "status": "suspended" }`
+
+**응답**: `{ "ok": true }`
+
+---
+
+<a id="admin-licenses-delete"></a>
+
+### 33. 라이선스 삭제
+
+**엔드포인트**: `DELETE /v1/admin/licenses/:seq`
+
+**응답**: `{ "ok": true, "deleted": 2 }`
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 백업 관리 (`/v1/admin/backup`)
+
+> `backup.json`이 활성화된 경우에만 라우트가 등록됩니다. 백업 미설정 시 호출하면 `503 backup is not configured`를 반환합니다. 모든 백업 라우트는 `POST`입니다.
+
+<a id="admin-backup-run"></a>
+
+### 34. 백업 즉시 실행
+
+스케줄과 무관하게 백업을 즉시 1회 실행합니다.
+
+**엔드포인트**: `POST /v1/admin/backup/run`
+
+**응답**:
+
+```json
+{
+    "ok": true,
+    "data": { "session_id": "20260605-xxxxxx", "status": "running" }
+}
+```
+
+---
+
+<a id="admin-backup-status"></a>
+
+### 35. 백업 상태 조회
+
+현재 진행 중인 백업 세션 상태를 반환합니다. 진행 중인 세션이 없으면 `idle`을 반환합니다.
+
+**엔드포인트**: `POST /v1/admin/backup/status`
+
+**응답**: `{ "ok": true, "data": { "status": "idle" } }` 또는 진행 중 세션 객체
+
+---
+
+<a id="admin-backup-list"></a>
+
+### 36. 백업 목록 조회
+
+**엔드포인트**: `POST /v1/admin/backup/list`
+
+**응답**: `{ "ok": true, "message": "use GET /v1/entity/backup_log to list backup sessions" }`
+
+> 실제 세션 목록은 `backup_log` 엔티티(`GET /v1/entity/backup_log`)로 조회합니다.
+
+---
+
+<a id="admin-backup-restore"></a>
+
+### 37. 백업 복원
+
+**엔드포인트**: `POST /v1/admin/backup/restore`
+
+**요청 본문**:
+
+```json
+{
+    "session_id": "20260605-xxxxxx",
+    "db_group": "default",
+    "mode": "merge"
+}
+```
+
+- `session_id` (필수) — 비어 있으면 `400`.
+- `db_group` (default: `default`)
+- `mode` (default: `merge`)
+
+**응답**: `{ "ok": true, "message": "restore is not yet implemented via admin API — use entity-cli restore" }`
+
+> 현재 admin API 복원은 스텁 상태입니다. 실제 복원은 `entity-cli restore`를 사용하세요.
+
+---
+
+<a id="admin-backup-delete"></a>
+
+### 38. 백업 세션 삭제
+
+지정한 세션의 manifest와 파일을 삭제합니다.
+
+**엔드포인트**: `POST /v1/admin/backup/delete`
+
+**요청 본문**: `{ "session_id": "20260605-xxxxxx" }` (필수, 비어 있으면 `400`)
+
+**응답**: `{ "ok": true, "message": "session deleted" }`
+
+↑ [목록으로 이동](#summary)
+
+---
+
+## 관련 문서
+
+### API 라우트
+
+- [API 라우트 개요](api-routes.md)
+- [엔티티 라우트](entity-routes.md)
+- [인증 라우트](auth-routes.md)
+- [파일 라우트](files-routes.md)
+- [SMTP 라우트](smtp-routes.md)
+- [편의 기능 라우트](utils-routes.md)
+- [Join 가이드](join-routes.md)
+- [훅 가이드](../data/hooks.md)
+
+### 운영 가이드
+
+- [엔티티 설정](../data/entity-config-guide.md)
+- [운영 플레이북](../operations/operations-playbook.md)
+- [스크립트](../operations/scripts-guide.md)
+- [목록으로 돌아가기](../README.md)
