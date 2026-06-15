@@ -1,0 +1,25 @@
+{
+    "name": "goods",
+    "description": "goods Entity.",
+    "fields": {
+        "name": {
+            "index": true,
+            "comment": "상품명",
+            "required": true,
+            "unique": true
+        },
+        "category": {
+            "index": true,
+            "comment": "카테고리",
+            "type": [
+                "전자제품",
+                "가구",
+                "생활용품"
+            ]
+        },
+        "price": {
+            "index": true,
+            "comment": "가격"
+        }
+    }
+}
