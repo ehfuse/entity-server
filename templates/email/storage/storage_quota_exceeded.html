@@ -1,0 +1,37 @@
+<h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #e74c3c;">🚫 저장공간 초과</h2>
+<p style="margin: 0 0 24px; font-size: 15px; color: #555; line-height: 1.6;">
+    저장공간 사용량이 제한 용량을 초과했습니다. 파일 업로드가 차단됩니다. 즉시 불필요한 파일을 삭제하거나 쿼터를 늘려주세요.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+    <tr>
+        <td style="padding: 16px 20px; background-color: #fdedec; border-radius: 6px; border-left: 4px solid #e74c3c;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">사용량</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${used|0 B}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">제한 용량</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${limit|0 B}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">사용률</td>
+                    <td style="padding: 4px 0; font-size: 15px; font-weight: 700; color: #e74c3c;">${percent|0}%</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">업로드 시도</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${upload_size|0 B}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<!-- 사용률 바 (100%) -->
+<div style="margin: 0 0 24px;">
+    <div style="background-color: #eee; border-radius: 4px; height: 12px; overflow: hidden;">
+        <div style="background-color: #e74c3c; height: 100%; width: 100%; border-radius: 4px;"></div>
+    </div>
+</div>
+<p style="margin: 0; font-size: 13px; color: #aaa; line-height: 1.6;">
+    이 알림은 저장공간 사용량이 제한 용량을 초과했을 때 자동 발송됩니다.
+</p>
