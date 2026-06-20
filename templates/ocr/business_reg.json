@@ -1,0 +1,145 @@
+{
+    "doc_type": "business_reg",
+    "label": "사업자등록증",
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 5,
+        "x_tolerance": 10,
+        "remove_patterns": [
+            "NATIONAL TAX SERVICE REPUBLIC OF KOREA",
+            "나라사랑e",
+            "nts\\.go\\.kr"
+        ],
+        "remove_keywords": [
+            "KOREA",
+            "OF",
+            "NATIONAL",
+            "REPULIC",
+            "국세청",
+            "nts.go.kr",
+            "TAX",
+            "SERVICE"
+        ],
+        "merge_patterns": ["주식회사", "(주)"]
+    },
+    "keywords": {
+        "dummy": ["국세청", "법인사업자", "개인사업자", "사업자등록증"],
+        "corp_num": ["등록번호", "사업자등록번호"],
+        "corp_reg_num": ["법인등록번호"],
+        "corp_name": ["법인명", "단체명", "상호", "법인명(단체명)"],
+        "ceo_name": ["대표자", "성명"],
+        "birthday": ["생년월일"],
+        "open_date": ["개업연월일"],
+        "address": ["사업장소재지"],
+        "head_address": ["본점소재지"],
+        "biz_type": ["업태", "사업의종류"],
+        "biz_class": ["종목"],
+        "issue_reason": ["발급사유"],
+        "tax_unit": ["사업자단위과세적용사업자여부"],
+        "email": ["전자세금계산서전용전자우편주소"]
+    },
+    "fields": {
+        "corp_num": {
+            "mode": "regex_scan",
+            "pattern": "([0-9]{3}-[0-9]{2}-[0-9]{5})",
+            "refine": "biz_num"
+        },
+        "corp_reg_num": {
+            "mode": "anchor",
+            "required_keyword": "법인등록번호",
+            "criteria": [
+                { "keyword": "법인등록번호", "direction": "RIGHT" },
+                { "keyword": "대표자", "direction": "DOWN" },
+                { "keyword": "상호", "direction": "DOWN" },
+                { "keyword": "사업장소재지", "direction": "UP" }
+            ]
+        },
+        "corp_name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "법인명(단체명)", "direction": "RIGHT" },
+                { "keyword": "상호", "direction": "RIGHT" },
+                { "keyword": "등록번호", "direction": "DOWN" },
+                { "keyword": "대표자", "direction": "UP" },
+                { "keyword": "성명", "direction": "UP" },
+                { "keyword": "생년월일", "direction": "LEFT" }
+            ]
+        },
+        "ceo_name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "대표자", "direction": "RIGHT" },
+                { "keyword": "성명", "direction": "RIGHT" },
+                { "keyword": "생년월일", "direction": "LEFT" },
+                { "keyword": "법인명(단체명)", "direction": "DOWN" },
+                { "keyword": "상호", "direction": "DOWN" },
+                { "keyword": "개업연월일", "direction": "UP" }
+            ]
+        },
+        "open_date": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "개업연월일", "direction": "RIGHT" },
+                { "keyword": "법인등록번호", "direction": "LEFT" },
+                { "keyword": "사업장소재지", "direction": "UP" },
+                { "keyword": "대표자", "direction": "DOWN" },
+                { "keyword": "성명", "direction": "DOWN" }
+            ],
+            "refine": "date"
+        },
+        "address": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "사업장소재지", "direction": "RIGHT" },
+                { "keyword": "사업장소재지", "direction": "DOWN" },
+                { "keyword": "본점소재지", "direction": "UP" },
+                { "keyword": "사업의종류", "direction": "UP" },
+                { "keyword": "개업연월일", "direction": "DOWN" }
+            ]
+        },
+        "biz_type": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "업태", "direction": "RIGHT" },
+                { "keyword": "종목", "direction": "LEFT" },
+                { "keyword": "본점소재지", "direction": "DOWN" },
+                { "keyword": "사업장소재지", "direction": "DOWN" },
+                { "keyword": "발급사유", "direction": "UP" },
+                { "keyword": "사업자단위과세적용사업자여부", "direction": "UP" }
+            ]
+        },
+        "biz_class": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "종목", "direction": "RIGHT" },
+                { "keyword": "본점소재지", "direction": "DOWN" },
+                { "keyword": "사업장소재지", "direction": "DOWN" },
+                { "keyword": "발급사유", "direction": "UP" },
+                { "keyword": "사업자단위과세적용사업자여부", "direction": "UP" }
+            ]
+        },
+        "email": {
+            "mode": "anchor",
+            "criteria": [
+                {
+                    "keyword": "전자세금계산서전용전자우편주소",
+                    "direction": "RIGHT"
+                },
+                {
+                    "keyword": "전자세금계산서전용전자우편주소",
+                    "direction": "DOWN"
+                }
+            ]
+        }
+    },
+    "required_fields": ["corp_num", "corp_name"],
+    "confidence_weight": {
+        "corp_num": 0.35,
+        "corp_name": 0.3,
+        "ceo_name": 0.1,
+        "open_date": 0.1,
+        "address": 0.1,
+        "biz_type": 0.025,
+        "biz_class": 0.025
+    }
+}
