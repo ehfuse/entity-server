@@ -1,0 +1,14 @@
+{
+    "doc_type": "driver_license",
+    "system_msg": "당신은 OCR 텍스트에서 운전면허증 데이터를 추출하는 전문 AI입니다. 주민등록번호는 반드시 앞 6자리만 추출하고 뒤 7자리는 *로 마스킹하세요 (예: 901225-*******). 주어진 JSON 스키마에 정확히 맞는 JSON만 출력하세요.",
+    "user_msg": "아래 운전면허증 OCR 텍스트에서 필드를 추출하여 다음 JSON 스키마에 맞게 응답하세요.\n\n[OCR 텍스트]\n{{ocr_text}}\n\n[출력 스키마]\n{{schema}}\n\nJSON만 출력하세요.",
+    "schema": {
+        "name": "string: 성명",
+        "id_number": "string: 주민등록번호 (앞 6자리만, 뒤 7자리는 * 마스킹: YYMMDD-*******)",
+        "license_num": "string: 면허번호 (XX-XX-XXXXXX-XX 형식)",
+        "license_type": "string: 면허종별 (예: 1종보통, 2종보통, 1종대형 등)",
+        "issue_date": "string: 발급일자 (YYYY-MM-DD 형식)",
+        "expiry_date": "string: 적성검사 만료일 (YYYY-MM-DD 형식)",
+        "issuer": "string: 발급 경찰청 이름"
+    }
+}

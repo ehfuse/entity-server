@@ -1,0 +1,35 @@
+{
+    "name": "storage_usage",
+    "description": "라이선스별 스토리지 사용량 카운터. file_meta 가 INSERT/HARD DELETE 될 때 ES 가 원자적으로 증감하며(업로드·교체·삭제·GC 전 경로), entity-cli storage-usage --recalc 로 file_meta 합계와 재대조할 수 있다. API 를 통한 직접 수정은 허용되지 않는다.",
+    "history": false,
+    "hard_delete": true,
+    "read_only": true,
+    "index_table_only": true,
+    "fields": {
+        "scope": {
+            "comment": "카운터 구분 (라이선스당 1행 — 항상 'primary')",
+            "type": "varchar(16)",
+            "unique": true,
+            "required": true,
+            "default": "primary"
+        },
+        "used_bytes": {
+            "index": true,
+            "comment": "사용 중인 파일 원본 바이트 합계 (썸네일 파생본 제외)",
+            "type": "bigint",
+            "default": 0,
+            "nullable": false
+        },
+        "file_count": {
+            "index": true,
+            "comment": "file_meta 행 수 (pending/active/orphan 포함)",
+            "type": "bigint",
+            "default": 0,
+            "nullable": false
+        },
+        "recalc_time": {
+            "comment": "마지막 전량 재집계(recalc) 시각",
+            "nullable": true
+        }
+    }
+}

@@ -1,0 +1,92 @@
+{
+    "doc_type": "invoice",
+    "label": "세금계산서",
+
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 5,
+        "x_tolerance": 10,
+        "remove_patterns": ["^\\s*$"]
+    },
+
+    "keywords": {
+        "invoice_num": ["일련번호", "승인번호"],
+        "issuer_corp_num": ["공급자", "등록번호"],
+        "issuer_name": ["공급자", "상호"],
+        "receiver_corp_num": ["공급받는자", "등록번호"],
+        "receiver_name": ["공급받는자", "상호"],
+        "write_date": ["작성일자", "작성 연월일"],
+        "amount_total": ["공급가액", "합계금액"],
+        "tax_total": ["세액"],
+        "total_amount": ["합계금액", "총합계"]
+    },
+
+    "fields": {
+        "invoice_num": {
+            "output_key": "invoice_num",
+            "mode": "regex_scan",
+            "pattern": "([0-9]{8}-[0-9]{8})",
+            "capture_group": 1
+        },
+        "write_date": {
+            "output_key": "write_date",
+            "criteria": [
+                { "keyword": "작성일자", "direction": "RIGHT" },
+                { "keyword": "작성 연월일", "direction": "RIGHT" }
+            ],
+            "refine": "date"
+        },
+        "amount_total": {
+            "output_key": "amount_total",
+            "criteria": [
+                { "keyword": "공급가액", "direction": "RIGHT" },
+                { "keyword": "공급가액", "direction": "DOWN" }
+            ],
+            "refine": "number"
+        },
+        "tax_total": {
+            "output_key": "tax_total",
+            "criteria": [
+                { "keyword": "세액", "direction": "RIGHT" },
+                { "keyword": "세액", "direction": "DOWN" }
+            ],
+            "refine": "number"
+        },
+        "total_amount": {
+            "output_key": "total_amount",
+            "criteria": [
+                { "keyword": "합계금액", "direction": "RIGHT" },
+                { "keyword": "합계금액", "direction": "DOWN" }
+            ],
+            "refine": "number"
+        },
+        "issuer_name": {
+            "output_key": "issuer_name",
+            "region": {
+                "from": "공급자",
+                "to": "공급받는자",
+                "direction": "DOWN",
+                "x_min_anchor": "상호"
+            }
+        },
+        "receiver_name": {
+            "output_key": "receiver_name",
+            "region": {
+                "from": "공급받는자",
+                "to": "작성일자",
+                "direction": "DOWN",
+                "x_min_anchor": "상호"
+            }
+        }
+    },
+
+    "required_fields": ["total_amount"],
+
+    "confidence_weight": {
+        "invoice_num": 0.15,
+        "write_date": 0.15,
+        "amount_total": 0.25,
+        "tax_total": 0.2,
+        "total_amount": 0.25
+    }
+}

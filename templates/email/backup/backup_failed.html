@@ -1,0 +1,27 @@
+<h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #e74c3c;">❌ 백업 실패</h2>
+<p style="margin: 0 0 24px; font-size: 15px; color: #555; line-height: 1.6;">
+    데이터 백업에 실패했습니다. 오류 내용을 확인하고 조치해 주세요.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+    <tr>
+        <td style="padding: 16px 20px; background-color: #fdedec; border-radius: 6px; border-left: 4px solid #e74c3c;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">세션 ID</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${session_id|—}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">상태</td>
+                    <td style="padding: 4px 0; font-size: 14px; font-weight: 700; color: #e74c3c;">실패</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<div style="margin: 0 0 24px;">
+    <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #1a1a2e;">오류 내용</p>
+    <pre style="margin: 0; padding: 12px 16px; background-color: #f8f8fa; border-radius: 6px; font-size: 13px; color: #e74c3c; line-height: 1.6; white-space: pre-wrap; word-break: break-all;">${error_message|알 수 없는 오류}</pre>
+</div>
+<p style="margin: 0; font-size: 13px; color: #aaa; line-height: 1.6;">
+    이 알림은 백업 실패 시 자동 발송됩니다.
+</p>

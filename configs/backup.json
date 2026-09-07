@@ -1,0 +1,44 @@
+{
+    "_comment": "백업 설정 파일입니다. 데이터베이스, 파일, 스키마 백업 옵션과 알림 설정을 포함합니다. 백업을 활성화하려면 'enabled'를 true로 변경하세요. storage 옵션은 백업 파일의 저장 위치를 지정합니다. 데이터베이스 백업은 스케줄에 따라 자동으로 수행되며, 포함/제외할 엔티티를 세밀하게 설정할 수 있습니다. 파일 백업은 실시간 또는 예약 모드로 설정할 수 있으며, 실패 시 재시도 옵션도 제공합니다. 스키마 백업은 엔티티 정의의 버전 관리를 위해 유용합니다. 알림 설정을 통해 백업 성공 또는 실패 시 로그 기록이나 이메일 알림을 받을 수 있습니다.",
+    "enabled": false,
+    "storage": "local-backup",
+    "prefix": "backups",
+
+    "database": {
+        "enabled": true,
+        "schedule": "0 2 * * *",
+        "db_group": ["default"],
+        "entities": {
+            "include": ["account_login_log"],
+            "exclude": [],
+            "exclude_patterns": ["*_log"]
+        },
+        "include_history": false,
+        "format": "jsonl",
+        "compress": true,
+        "encrypt_passphrase": "${BACKUP_ENCRYPT_KEY}",
+        "batch_size": 500,
+        "max_concurrent_entities": 3,
+        "retention": {
+            "keep_count": 7,
+            "keep_days": 30
+        }
+    },
+
+    "files": {
+        "enabled": true,
+        "mode": "realtime",
+        "max_retries": 3,
+        "retry_interval_sec": 60
+    },
+
+    "schema": {
+        "enabled": true
+    },
+
+    "notification": {
+        "on_success": false,
+        "on_failure": true,
+        "channels": ["log", "smtp"]
+    }
+}
