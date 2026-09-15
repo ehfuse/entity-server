@@ -1,0 +1,25 @@
+{
+    "name": "company",
+    "description": "company Entity.",
+    "fields": {
+        "company_name": {
+            "index": true,
+            "comment": "회사명",
+            "required": true
+        },
+        "industry": {
+            "index": true,
+            "comment": "업종"
+        },
+        "tax_id": {
+            "index": true,
+            "comment": "사업자번호",
+            "hash": true
+        }
+    },
+    "license_scope": true,
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 300
+    }
+}

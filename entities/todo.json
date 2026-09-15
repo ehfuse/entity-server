@@ -1,0 +1,15 @@
+{
+    "name": "todo",
+    "description": "todo Entity.",
+    "fields": {
+        "title": {
+            "index": true,
+            "comment": "할 일 제목"
+        },
+        "status": {
+            "index": true,
+            "comment": "상태",
+            "type": ["pending", "done"]
+        }
+    }
+}

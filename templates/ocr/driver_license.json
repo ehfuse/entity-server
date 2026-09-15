@@ -1,0 +1,89 @@
+{
+    "doc_type": "driver_license",
+    "label": "운전면허증",
+
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 4,
+        "x_tolerance": 8,
+        "remove_keywords": ["(Driver's License)", "Driver's", "License"],
+        "remove_patterns": ["^\\s*$", "^[가-힣]{2,4}\\s*도로교통공단$"]
+    },
+
+    "keywords": {
+        "keyword": ["자동차운전면허증", "적성검사", "기간"],
+        "license_type": [
+            "1종대형",
+            "1종보통",
+            "2종보통",
+            "2종소형",
+            "원동기",
+            "특수(대형견인,구난차)",
+            "특수(소형견인,구난차)",
+            "특수(건설기계)",
+            "특수(농기계)",
+            "특수(비상구난차)",
+            "특수(경찰용)",
+            "특수(소형이동기계)"
+        ]
+    },
+
+    "fields": {
+        "name": {
+            "mode": "anchor",
+            "criteria": [
+                {
+                    "keyword": "(?:[가-힣]+\\s+)?\\d{2}-\\d{2}-\\d{6}-\\d{2}",
+                    "direction": "DOWN_OVERLAP",
+                    "is_regex": true
+                },
+                {
+                    "keyword": "\\d{6}-?(\\d{7}|\\*{7})",
+                    "direction": "UP_OVERLAP",
+                    "is_regex": true
+                }
+            ]
+        },
+        "license_type": {
+            "mode": "keywords_scan",
+            "keywords_key": "license_type"
+        },
+        "license_num": {
+            "mode": "regex_scan",
+            "pattern": "(?:[가-힣]+\\s+)?(\\d{2}-\\d{2}-\\d{6}-\\d{2})",
+            "refine": "driver_license"
+        },
+        "id_number": {
+            "mode": "regex_scan",
+            "pattern": "(\\d{6}-?(\\d{7}|\\*{7}))",
+            "refine": "id_num"
+        },
+        "expiry_date": {
+            "mode": "regex_scan",
+            "pattern": "(\\d{4}[.\\-\\/]\\d{1,2}[.\\-\\/]\\d{1,2})\\s*~\\s*(\\d{4}[.\\-\\/]\\d{1,2}[.\\-\\/]\\d{1,2})",
+            "capture_group": 2,
+            "refine": "date"
+        },
+        "issue_date": {
+            "mode": "dates_scan",
+            "dates_index": 2,
+            "refine": "date"
+        },
+        "issuer": {
+            "mode": "regex_scan",
+            "pattern": "([가-힣]+지방경찰청|[가-힣]+경찰청)",
+            "capture_group": 1
+        }
+    },
+
+    "required_fields": ["name", "license_num"],
+
+    "confidence_weight": {
+        "name": 0.25,
+        "id_number": 0.2,
+        "license_num": 0.3,
+        "license_type": 0.1,
+        "issue_date": 0.1,
+        "expiry_date": 0.05
+    }
+}

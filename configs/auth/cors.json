@@ -1,0 +1,15 @@
+{
+    "_comment": "CORS 설정 예시. cors_allow_origins 는 프로덕션에서 반드시 구체적인 도메인으로 제한하세요.",
+    "cors_enabled": true,
+    "cors_allow_credentials": false,
+    "cors_allow_headers": "Origin,Content-Type,Accept,Authorization,X-API-Key,X-Signature,X-Timestamp,X-Nonce,X-Transaction-ID",
+    "cors_allow_methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "cors_allow_origins": "https://your-domain.com",
+
+    "environments": {
+        "development": {
+            "_comment": "개발 환경에서만 와일드카드 허용",
+            "cors_allow_origins": "*"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "name": "addr_dong",
+    "description": "읍/면/동 마스터 데이터 (data_rgn3)",
+    "license_scope": false,
+    "hard_delete": true,
+    "fields": {
+        "dong": {
+            "index": true,
+            "comment": "읍면동명",
+            "required": true
+        },
+        "sigungu": {
+            "index": true,
+            "comment": "시군구명",
+            "required": true
+        },
+        "sido": {
+            "index": true,
+            "comment": "시도 정식명칭",
+            "required": true
+        },
+        "sigungu_seq": {
+            "index": true,
+            "comment": "시군구 seq (addr_sigungu 참조)",
+            "type": "uint"
+        },
+        "sido_seq": {
+            "index": true,
+            "comment": "시도 seq (addr_sido 참조)",
+            "type": "uint"
+        }
+    }
+}

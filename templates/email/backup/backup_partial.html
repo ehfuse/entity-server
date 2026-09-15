@@ -1,0 +1,31 @@
+<h2 style="margin: 0 0 16px; font-size: 22px; font-weight: 700; color: #e67e22;">⚠️ 백업 부분 완료</h2>
+<p style="margin: 0 0 24px; font-size: 15px; color: #555; line-height: 1.6;">
+    백업이 완료되었으나 일부 엔티티에서 오류가 발생했습니다. 실패한 항목을 확인해 주세요.
+</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+    <tr>
+        <td style="padding: 16px 20px; background-color: #fef9e7; border-radius: 6px; border-left: 4px solid #e67e22;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">세션 ID</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${session_id|—}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">상태</td>
+                    <td style="padding: 4px 0; font-size: 14px; font-weight: 700; color: #e67e22;">부분 완료</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; font-size: 14px; color: #555; width: 120px; font-weight: 600;">레코드 수</td>
+                    <td style="padding: 4px 0; font-size: 14px; color: #333;">${total_records|0}건</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<div style="margin: 0 0 24px;">
+    <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #1a1a2e;">실패한 엔티티</p>
+    <pre style="margin: 0; padding: 12px 16px; background-color: #f8f8fa; border-radius: 6px; font-size: 13px; color: #555; line-height: 1.6; white-space: pre-wrap; word-break: break-all;">${failed_entities|없음}</pre>
+</div>
+<p style="margin: 0; font-size: 13px; color: #aaa; line-height: 1.6;">
+    이 알림은 백업 결과에 오류가 포함되었을 때 자동 발송됩니다.
+</p>
