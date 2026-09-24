@@ -1,0 +1,111 @@
+{
+    "name": "account",
+    "description": "JWT 로그인/인증용 계정 정보.",
+    "fields": {
+        "email": {
+            "index": true,
+            "hash": true,
+            "comment": "이메일",
+            "type": "email",
+            "required": true,
+            "unique": true
+        },
+        "rbac_role": {
+            "index": true,
+            "comment": "엔티티 접근 역할",
+            "type": [
+                "admin",
+                "editor",
+                "viewer",
+                "auditor",
+                "user"
+            ],
+            "default": "user"
+        },
+        "status": {
+            "index": true,
+            "comment": "계정 상태",
+            "type": [
+                "active",
+                "inactive",
+                "blocked",
+                "dormant"
+            ],
+            "default": "active"
+        },
+        "max_session_cnt": {
+            "type": "uint"
+        },
+        "has_password": {
+            "type": "bool",
+            "comment": "비밀번호 설정 여부 (소셜 전용 계정 구분)"
+        },
+        "last_login_time": {
+            "comment": "마지막 로그인 시각 (휴면 판단 기준)"
+        },
+        "passwd_changed_time": {
+            "comment": "마지막 비밀번호 변경 시각 (만료 정책 기준)"
+        },
+        "temp_password_hash": {
+            "type": "varchar(128)",
+            "comment": "임시 비밀번호 해시 (비밀번호 초기화 요청 시 발급)"
+        },
+        "temp_password_issued_time": {
+            "comment": "임시 비밀번호 발급 시각"
+        },
+        "force_password_change": {
+            "type": "bool",
+            "default": false,
+            "comment": "다음 로그인 시 비밀번호 변경 강제"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": [
+                    "${new.seq}",
+                    "INSERT",
+                    "${new.email}"
+                ],
+                "required": true
+            }
+        ],
+        "after_update": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": [
+                    "${new.seq}",
+                    "UPDATE",
+                    "${new.email}"
+                ],
+                "required": true
+            }
+        ],
+        "after_delete": [
+            {
+                "type": "sql",
+                "query": "INSERT INTO account_audit (account_seq, action, email, created_time) VALUES (?, ?, ?, NOW())",
+                "params": [
+                    "${old.seq}",
+                    "DELETE",
+                    "${old.email}"
+                ],
+                "required": true
+            }
+        ],
+        "after_get": [
+            {
+                "type": "entity",
+                "entity": "account_device",
+                "action": "list",
+                "conditions": {
+                    "account_seq": "${new.seq}"
+                },
+                "assign_to": "devices"
+            }
+        ]
+    }
+}

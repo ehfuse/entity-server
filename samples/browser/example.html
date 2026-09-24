@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entity Server — 브라우저 예제</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem;
+            color: #f8fafc;
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin: 0 0 .75rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1rem;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: #1e2330;
+            border: 1px solid #2d3446;
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: .8rem;
+            color: #94a3b8;
+            margin-bottom: 3px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: #0f1117;
+            border: 1px solid #2d3446;
+            border-radius: 6px;
+            color: #e2e8f0;
+            padding: .45rem .65rem;
+            font-size: .85rem;
+            margin-bottom: .75rem;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: 1px solid #4f8ef7;
+        }
+
+        textarea {
+            height: 90px;
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: #4f8ef7;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: .5rem 1rem;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: background .15s;
+            margin: .2rem .2rem .2rem 0;
+        }
+
+        button:hover {
+            background: #3a7be3;
+        }
+
+        button.danger {
+            background: #e05252;
+        }
+
+        button.danger:hover {
+            background: #c43e3e;
+        }
+
+        button.neutral {
+            background: #374058;
+        }
+
+        button.neutral:hover {
+            background: #4a5470;
+        }
+
+        #log {
+            background: #090c12;
+            border: 1px solid #2d3446;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Cascadia Code', 'Fira Mono', monospace;
+            font-size: .78rem;
+            overflow-y: auto;
+            height: 520px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-ok {
+            color: #4ade80;
+        }
+
+        .log-err {
+            color: #f87171;
+        }
+
+        .log-info {
+            color: #7dd3fc;
+        }
+
+        .log-dim {
+            color: #475569;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #2d3446;
+            margin: .75rem 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🗂 Entity Server — 브라우저 예제</h1>
+
+    <div class="grid">
+        <!-- ── 왼쪽: 설정 + 조작 ── -->
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+
+            <!-- 연결 설정 -->
+            <div class="card">
+                <h2>연결 설정</h2>
+
+                <label>서버 URL</label>
+                <input id="url" value="http://localhost:47200" />
+
+                <label>인증 모드</label>
+                <select id="authMode" onchange="onAuthModeChange()">
+                    <option value="token">JWT Token</option>
+                    <option value="hmac">HMAC (API Key + Secret)</option>
+                </select>
+
+                <div id="tokenSection">
+                    <label>JWT Token</label>
+                    <input id="token" type="password" placeholder="Bearer 토큰" />
+                </div>
+                <div id="hmacSection" style="display:none">
+                    <label>API Key</label>
+                    <input id="apiKey" placeholder="X-API-Key" />
+                    <label>HMAC Secret</label>
+                    <input id="hmacSecret" type="password" placeholder="서명 시크릿" />
+                </div>
+
+                <button onclick="initClient()">🔌 연결</button>
+            </div>
+
+            <!-- CRUD -->
+            <div class="card">
+                <h2>CRUD</h2>
+
+                <label>엔티티명</label>
+                <input id="entity" value="product" />
+
+                <label>데이터 (JSON)</label>
+                <textarea id="data">{"name":"무선 키보드","price":89000,"category":"peripherals"}</textarea>
+
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+                    <button onclick="doList()">📋 목록</button>
+                    <button onclick="doSubmit()">💾 저장</button>
+                </div>
+
+                <hr class="divider" />
+
+                <label>seq (단건 조회/삭제)</label>
+                <input id="seq" type="number" placeholder="seq" />
+
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+                    <button onclick="doGet()" class="neutral">🔍 조회</button>
+                    <button onclick="doHistory()" class="neutral">📜 이력</button>
+                    <button onclick="doDelete()" class="danger">🗑 삭제</button>
+                </div>
+            </div>
+
+            <!-- 트랜잭션 -->
+            <div class="card">
+                <h2>트랜잭션</h2>
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+                    <button onclick="doTxStart()" class="neutral">▶ 시작</button>
+                    <button onclick="doTxCommit()">✔ 커밋</button>
+                    <button onclick="doTxRollback()" class="danger">✖ 롤백</button>
+                </div>
+            </div>
+
+            <!-- 웹 푸시 -->
+            <div class="card">
+                <h2>Web Push 등록</h2>
+                <label>VAPID Public Key</label>
+                <input id="vapidKey" placeholder="서버 VAPID public key (Base64Url)" />
+                <label>Account Seq</label>
+                <input id="pushAccountSeq" type="number" placeholder="로그인한 account_seq" />
+                <button onclick="doSubscribePush()">🔔 푸시 구독 등록</button>
+            </div>
+        </div>
+
+        <!-- ── 오른쪽: 로그 ── -->
+        <div style="display:flex;flex-direction:column;gap:.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0">응답 로그</h2>
+                <button onclick="clearLog()" class="neutral" style="margin:0;padding:.3rem .75rem;font-size:.75rem;">지우기</button>
+            </div>
+            <pre id="log"><span class="log-dim">// 연결 후 조작하면 여기에 응답이 표시됩니다.</span></pre>
+        </div>
+    </div>
+
+    <!-- ── 로직 ─────────────────────────────────────────────── -->
+    <script type="module">
+        /**
+         * 이 예제는 entity-server-client.js를 직접 import하여 사용합니다.
+         * CORS가 허용된 환경이거나 같은 origin에서 실행해야 합니다.
+         *
+         * 파일을 로컬에서 열 때는 Live Server(VS Code) 등 HTTP 서버가 필요합니다.
+         * (file:// 프로토콜은 ES Module import가 동작하지 않습니다)
+         */
+        import {
+            EntityServerClient
+        } from "./entity-server-client.js";
+
+        let es = null;
+
+        // ── 유틸 ────────────────────────────────────────────────────────────────────
+
+        function log(label, data, isError = false) {
+            const el = document.getElementById("log");
+            const ts = new Date().toLocaleTimeString();
+            const cls = isError ? "log-err" : "log-ok";
+            const json = typeof data === "object" ? JSON.stringify(data, null, 2) : String(data);
+            el.innerHTML +=
+                `\n<span class="log-dim">[${ts}]</span> <span class="log-info">${label}</span>\n` +
+                `<span class="${cls}">${json}</span>\n`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function getEntity() {
+            return document.getElementById("entity").value.trim();
+        }
+
+        function getSeq() {
+            return Number(document.getElementById("seq").value);
+        }
+
+        function getData() {
+            try {
+                return JSON.parse(document.getElementById("data").value);
+            } catch {
+                throw new Error("데이터 JSON 파싱 오류");
+            }
+        }
+
+        window.clearLog = () => {
+            document.getElementById("log").innerHTML = '<span class="log-dim">// 지워졌습니다.</span>';
+        };
+
+        window.onAuthModeChange = () => {
+            const mode = document.getElementById("authMode").value;
+            document.getElementById("tokenSection").style.display = mode === "token" ? "block" : "none";
+            document.getElementById("hmacSection").style.display = mode === "hmac" ? "block" : "none";
+        };
+
+        // ── 연결 ────────────────────────────────────────────────────────────────────
+
+        window.initClient = async () => {
+            const mode = document.getElementById("authMode").value;
+            const opts = {
+                baseUrl: document.getElementById("url").value.trim()
+            };
+            if (mode === "token") {
+                opts.token = document.getElementById("token").value.trim();
+            } else {
+                opts.apiKey = document.getElementById("apiKey").value.trim();
+                opts.hmacSecret = document.getElementById("hmacSecret").value.trim();
+            }
+            es = new EntityServerClient(opts);
+            try {
+                const health = await es.checkHealth();
+                log("checkHealth()", health);
+            } catch (e) {
+                log("checkHealth() 오류", e.message, true);
+            }
+        };
+
+        // ── CRUD ─────────────────────────────────────────────────────────────────────
+
+        window.doList = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            try {
+                const res = await es.list(getEntity(), {
+                    page: 1,
+                    limit: 10,
+                    fields: ["*"]
+                });
+                log(`list("${getEntity()}")`, res);
+            } catch (e) {
+                log("list() 오류", e.message, true);
+            }
+        };
+
+        window.doSubmit = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            try {
+                const res = await es.submit(getEntity(), getData());
+                log(`submit("${getEntity()}")`, res);
+                if (res.seq) document.getElementById("seq").value = res.seq;
+            } catch (e) {
+                log("submit() 오류", e.message, true);
+            }
+        };
+
+        window.doGet = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            const seq = getSeq();
+            if (!seq) return log("오류", "seq를 입력하세요.", true);
+            try {
+                const res = await es.get(getEntity(), seq);
+                log(`get("${getEntity()}", ${seq})`, res);
+            } catch (e) {
+                log("get() 오류", e.message, true);
+            }
+        };
+
+        window.doHistory = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            const seq = getSeq();
+            if (!seq) return log("오류", "seq를 입력하세요.", true);
+            try {
+                const res = await es.history(getEntity(), seq);
+                log(`history("${getEntity()}", ${seq})`, res);
+            } catch (e) {
+                log("history() 오류", e.message, true);
+            }
+        };
+
+        window.doDelete = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            const seq = getSeq();
+            if (!seq) return log("오류", "seq를 입력하세요.", true);
+            if (!confirm(`정말 삭제할까요? seq=${seq}`)) return;
+            try {
+                const res = await es.delete(getEntity(), seq);
+                log(`delete("${getEntity()}", ${seq})`, res);
+            } catch (e) {
+                log("delete() 오류", e.message, true);
+            }
+        };
+
+        // ── 트랜잭션 ─────────────────────────────────────────────────────────────────
+
+        window.doTxStart = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            try {
+                const txId = await es.transStart();
+                log("transStart()", {
+                    transaction_id: txId
+                });
+            } catch (e) {
+                log("transStart() 오류", e.message, true);
+            }
+        };
+
+        window.doTxCommit = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            try {
+                const res = await es.transCommit();
+                log("transCommit()", res);
+            } catch (e) {
+                log("transCommit() 오류", e.message, true);
+            }
+        };
+
+        window.doTxRollback = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+            try {
+                const res = await es.transRollback();
+                log("transRollback()", res);
+            } catch (e) {
+                log("transRollback() 오류", e.message, true);
+            }
+        };
+
+        // ── Web Push ─────────────────────────────────────────────────────────────────
+
+        /**
+         * 브라우저 Web Push 구독을 얻어 account_device에 등록합니다.
+         *
+         * 서버에서 VAPID 키 쌍을 사전에 생성해 두어야 합니다:
+         *   web-push generate-vapid-keys
+         *
+         * push_config.vapid_public_key 값을 VAPID Public Key 입력란에 붙여넣으세요.
+         */
+        window.doSubscribePush = async () => {
+            if (!es) return log("오류", "먼저 연결하세요.", true);
+
+            const vapidKey = document.getElementById("vapidKey").value.trim();
+            const accountSeq = Number(document.getElementById("pushAccountSeq").value);
+            if (!vapidKey) return log("오류", "VAPID Public Key를 입력하세요.", true);
+            if (!accountSeq) return log("오류", "Account Seq를 입력하세요.", true);
+
+            if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+                return log("오류", "이 브라우저는 Web Push를 지원하지 않습니다.", true);
+            }
+
+            try {
+                // Service Worker 등록 (최소 SW: push 이벤트 수신용)
+                // 실제 서비스에서는 별도 sw.js 파일을 사용하세요.
+                const swBlob = new Blob([`
+            self.addEventListener('push', e => {
+                const d = e.data?.json() ?? {};
+                self.registration.showNotification(d.title ?? '알림', {
+                    body: d.body ?? '',
+                    data: d.data ?? {},
+                });
+            });
+        `], {
+                    type: "application/javascript"
+                });
+                const swUrl = URL.createObjectURL(swBlob);
+                const reg = await navigator.serviceWorker.register(swUrl, {
+                    scope: "/"
+                });
+                await navigator.serviceWorker.ready;
+
+                // 푸시 구독
+                const perm = await Notification.requestPermission();
+                if (perm !== "granted") return log("푸시 권한 거부됨", perm, true);
+
+                const subscription = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: vapidKey,
+                });
+
+                // device_id: 브라우저 별 고정 ID (localStorage에 보관)
+                let deviceId = localStorage.getItem("push_device_id");
+                if (!deviceId) {
+                    deviceId = crypto.randomUUID();
+                    localStorage.setItem("push_device_id", deviceId);
+                }
+
+                const browser = navigator.userAgentData?.brands?.[0]?.brand ??
+                    navigator.userAgent.split(")")[0].split("(")[1];
+
+                const res = await es.registerWebPushDevice(
+                    accountSeq,
+                    deviceId,
+                    JSON.stringify(subscription), {
+                        browser
+                    },
+                );
+                log("registerWebPushDevice()", res);
+            } catch (e) {
+                log("push 등록 오류", e.message, true);
+            }
+        };
+    </script>
+
+</body>
+
+</html>

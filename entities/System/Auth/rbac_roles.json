@@ -1,0 +1,22 @@
+{
+    "name": "rbac_roles",
+    "description": "역할 기반 접근 제어 역할 정의.",
+    "index_table_only": true,
+    "license_scope": false,
+    "hard_delete": true,
+    "fields": {
+        "name": {
+            "index": true,
+            "comment": "역할 이름",
+            "required": true,
+            "unique": true
+        },
+        "description": {
+            "comment": "역할 설명"
+        },
+        "permissions": {
+            "type": "json",
+            "comment": "권한 목록"
+        }
+    }
+}

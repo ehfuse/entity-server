@@ -1,0 +1,186 @@
+// ──────────────────────────────────────────────────────────────────────────
+// database.json 설정 예시 (주석 포함 예시 전용 파일 — 실제 파일은 순수 JSON)
+//
+// "default"     : 사용할 그룹 이름 (groups 키 중 하나)
+// "groups"      : 드라이버별 연결 설정 모음
+//   driver        : "mysql" | "postgres" | "mongodb" | "dynamodb" |
+//                   "firestore" | "scylladb" | "couchdb"
+//
+// 환경 변수 참조: "${ENV_VAR_NAME}" 형식으로 값을 주입합니다.
+// ──────────────────────────────────────────────────────────────────────────
+{
+    "default": "development",
+    "groups": {
+        // ── MySQL (SQL) ─────────────────────────────────────────────────
+        "development": {
+            "driver": "mysql",
+            "host": "${DB_HOST_DEVELOPMENT}",
+            "port": "${DB_PORT_DEVELOPMENT}",
+            "database": "${DB_NAME_DEVELOPMENT}",
+            "user": "${DB_USER_DEVELOPMENT}",
+            "password": "${DB_PASSWORD_DEVELOPMENT}",
+            "maxOpenConns": 20,
+            "maxIdleConns": 10,
+            "connMaxLifetimeSec": 3600
+        },
+        "production": {
+            "driver": "mysql",
+            "host": "${DB_HOST_PRODUCTION}",
+            "port": "${DB_PORT_PRODUCTION}",
+            "database": "${DB_NAME_PRODUCTION}",
+            "user": "${DB_USER_PRODUCTION}",
+            "password": "${DB_PASSWORD_PRODUCTION}",
+            "maxOpenConns": 50,
+            "maxIdleConns": 25,
+            "connMaxLifetimeSec": 3600
+        },
+
+        // ── MongoDB ─────────────────────────────────────────────────────
+        // URI 우선 사용. uri 가 없으면 host/port/database/username/password 조합.
+        "mongodb_dev": {
+            "driver": "mongodb",
+            "uri": "mongodb://localhost:27017/entity_dev",
+            "database": "entity_dev"
+        },
+        "mongodb_prod": {
+            "driver": "mongodb",
+            "host": "${MONGO_HOST}",
+            "port": 27017,
+            "database": "${MONGO_DB}",
+            "username": "${MONGO_USER}",
+            "password": "${MONGO_PASSWORD}",
+            "uri": ""
+        },
+        "mongodb_replica": {
+            "driver": "mongodb",
+            "uri": "mongodb://${MONGO_USER}:${MONGO_PASS}@mongo1:27017,mongo2:27017,mongo3:27017/${MONGO_DB}?replicaSet=rs0&authSource=admin",
+            "database": "${MONGO_DB}"
+        },
+
+        // ── Amazon DynamoDB ─────────────────────────────────────────────
+        // region 과 IAM 인증이 필요합니다.
+        // 로컬 테스트: endpoint 에 "http://localhost:8000" 지정.
+        "dynamodb_dev": {
+            "driver": "dynamodb",
+            "region": "ap-northeast-2",
+            "endpoint": "http://localhost:8000",
+            "access_key_id": "${AWS_ACCESS_KEY_ID}",
+            "secret_access_key": "${AWS_SECRET_ACCESS_KEY}"
+        },
+        "dynamodb_prod": {
+            "driver": "dynamodb",
+            "region": "${AWS_REGION}",
+            "access_key_id": "${AWS_ACCESS_KEY_ID}",
+            "secret_access_key": "${AWS_SECRET_ACCESS_KEY}"
+        },
+
+        // ── Google Cloud Firestore ──────────────────────────────────────
+        // GCP 프로젝트 ID 와 서비스 계정 JSON 파일(또는 ADC)이 필요합니다.
+        //   credentials_file : 서비스 계정 키 파일 경로 (선택)
+        //   ADC 자동 사용 시 credentials_file 생략 가능.
+        "firestore_dev": {
+            "driver": "firestore",
+            "project_id": "${GCP_PROJECT_ID}",
+            "credentials_file": "${GOOGLE_APPLICATION_CREDENTIALS}"
+        },
+        "firestore_prod": {
+            "driver": "firestore",
+            "project_id": "${GCP_PROJECT_ID}"
+        },
+
+        // ── ScyllaDB / Apache Cassandra ────────────────────────────────
+        // hosts 는 쉼표 구분 문자열 또는 배열 모두 허용합니다.
+        // keyspace 가 없으면 자동 생성됩니다.
+        "scylladb_dev": {
+            "driver": "scylladb",
+            "hosts": "localhost:9042",
+            "keyspace": "entity_dev",
+            "username": "",
+            "password": ""
+        },
+        "scylladb_prod": {
+            "driver": "scylladb",
+            "hosts": "${SCYLLA_HOSTS}",
+            "keyspace": "${SCYLLA_KEYSPACE}",
+            "username": "${SCYLLA_USER}",
+            "password": "${SCYLLA_PASSWORD}",
+            "consistency": "quorum",
+            "timeout": "10s"
+        },
+
+        // ── Apache CouchDB ──────────────────────────────────────────────
+        // URI 우선 사용. uri 가 없으면 host/port/username/password 조합.
+        // 포트 기본값: 5984
+        "couchdb_dev": {
+            "driver": "couchdb",
+            "host": "localhost",
+            "port": 5984,
+            "username": "admin",
+            "password": "password"
+        },
+        "couchdb_uri": {
+            "driver": "couchdb",
+            "uri": "http://admin:password@localhost:5984/"
+        },
+        "couchdb_prod": {
+            "driver": "couchdb",
+            "uri": "http://${COUCH_USER}:${COUCH_PASS}@${COUCH_HOST}:${COUCH_PORT}/"
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// DataStore 단독 사용 — flat 형식 (groups 없이 최상위에 driver 직접 지정)
+//
+// SQL 없이 NoSQL DataStore만 단독으로 사용할 때는 groups 없이
+// database.json 최상위에 driver 를 직접 지정합니다.
+// store_loader.go 가 groups 키가 없고 NoSQL driver 인 경우에만 DataStore로 인식합니다.
+// ──────────────────────────────────────────────────────────────────────────
+
+// MongoDB flat 형식
+{
+    "driver": "mongodb",
+    "uri": "mongodb://localhost:27017",
+    "database": "entity_server"
+}
+
+// MongoDB — 환경변수 방식
+{
+    "driver": "mongodb",
+    "host": "${MONGO_HOST}",
+    "port": "${MONGO_PORT}",
+    "username": "${MONGO_USER}",
+    "password": "${MONGO_PASSWORD}",
+    "database": "${MONGO_DATABASE}"
+}
+
+// DynamoDB flat 형식
+{
+    "driver": "dynamodb",
+    "region": "${AWS_REGION}",
+    "access_key_id": "${AWS_ACCESS_KEY_ID}",
+    "secret_access_key": "${AWS_SECRET_ACCESS_KEY}"
+}
+
+// Firestore flat 형식
+{
+    "driver": "firestore",
+    "project_id": "${GCP_PROJECT_ID}",
+    "credentials_file": "${GOOGLE_APPLICATION_CREDENTIALS}"
+}
+
+// ScyllaDB flat 형식
+{
+    "driver": "scylladb",
+    "host": "${SCYLLA_HOST}",
+    "port": 9042,
+    "database": "${SCYLLA_KEYSPACE}",
+    "username": "${SCYLLA_USER}",
+    "password": "${SCYLLA_PASSWORD}"
+}
+
+// CouchDB flat 형식
+{
+    "driver": "couchdb",
+    "uri": "http://${COUCH_USER}:${COUCH_PASS}@${COUCH_HOST}:5984/"
+}

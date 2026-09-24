@@ -1,0 +1,55 @@
+{
+    "doc_type": "id_card",
+    "label": "주민등록증",
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 4,
+        "x_tolerance": 8
+    },
+    "keywords": {
+        "name": ["성명", "이름"],
+        "id_number": ["주민등록번호", "등록번호"],
+        "address": ["주소", "거주지"],
+        "issue_date": ["발급일", "발행일"]
+    },
+    "fields": {
+        "name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "성명", "direction": "RIGHT" },
+                { "keyword": "이름", "direction": "RIGHT" }
+            ]
+        },
+        "id_number": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "주민등록번호", "direction": "RIGHT" },
+                { "keyword": "등록번호", "direction": "RIGHT" }
+            ],
+            "refine": "id_num"
+        },
+        "address": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "주소", "direction": "DOWN" },
+                { "keyword": "주소", "direction": "RIGHT" }
+            ]
+        },
+        "issue_date": {
+            "mode": "regex_scan",
+            "pattern": "발급일[\\s:]*([0-9]{4}[.\\-/][0-9]{1,2}[.\\-/][0-9]{1,2})",
+            "refine": "date"
+        },
+        "issuer": {
+            "mode": "regex_scan",
+            "pattern": "(\\S+구청장|\\S+시장|\\S+군수|행정안전부장관|\\S+동장)"
+        }
+    },
+    "required_fields": ["name", "id_number"],
+    "confidence_weight": {
+        "name": 0.25,
+        "id_number": 0.45,
+        "address": 0.2,
+        "issue_date": 0.1
+    }
+}

@@ -1,0 +1,61 @@
+{
+    "name": "config_item",
+    "description": "캐시 예제 — 자주 읽히고 드물게 변경되는 설정값에 엔티티 레벨 캐시 활성화",
+    "fields": {
+        "key": {
+            "index": true,
+            "comment": "설정 키 (고유)",
+            "required": true,
+            "unique": true
+        },
+        "category": {
+            "index": true,
+            "comment": "설정 카테고리",
+            "type": [
+                "system",
+                "ui",
+                "feature_flag",
+                "notification"
+            ],
+            "default": "system"
+        },
+        "is_public": {
+            "index": true,
+            "comment": "공개 여부 (is_* → TINYINT(1) 자동 추론)"
+        },
+        "value": {
+            "comment": "설정 값 (문자열 저장, 타입은 애플리케이션에서 해석)",
+            "required": true
+        },
+        "description": {
+            "comment": "설정 항목 설명"
+        }
+    },
+    "cache": {
+        "enabled": true,
+        "ttl_seconds": 600
+    },
+    "reset_defaults": [
+        {
+            "key": "site.name",
+            "category": "system",
+            "value": "My Service",
+            "is_public": true,
+            "description": "서비스명"
+        },
+        {
+            "key": "feature.dark_mode",
+            "category": "feature_flag",
+            "value": "true",
+            "is_public": true,
+            "description": "다크모드 기능 활성화"
+        },
+        {
+            "key": "notification.email_enabled",
+            "category": "notification",
+            "value": "true",
+            "is_public": false,
+            "description": "이메일 알림 활성화"
+        }
+    ]
+}
