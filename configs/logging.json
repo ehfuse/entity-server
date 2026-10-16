@@ -1,0 +1,45 @@
+{
+    "level": "INFO",
+    "directory": "logs",
+    "access": {
+        "enabled": true,
+        "filename": "access.log",
+        "max_size_mb": 100,
+        "max_backups": 7,
+        "max_age_days": 14,
+        "compress": true
+    },
+    "error": {
+        "enabled": true,
+        "filename": "error.log",
+        "max_size_mb": 100,
+        "max_backups": 7,
+        "max_age_days": 30,
+        "compress": true
+    },
+    "cli": {
+        "enabled": true,
+        "filename": "cli.log",
+        "max_size_mb": 100,
+        "max_backups": 7,
+        "max_age_days": 14,
+        "compress": true
+    },
+    "slow": {
+        "enabled": true,
+        "filename": "slow.log",
+        "max_size_mb": 100,
+        "max_backups": 7,
+        "max_age_days": 14,
+        "compress": true,
+        "threshold_ms": 1000
+    },
+    "environments": {
+        "development": {
+            "level": "DEBUG",
+            "slow": {
+                "threshold_ms": 300
+            }
+        }
+    }
+}
