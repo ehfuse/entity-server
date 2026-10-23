@@ -1,0 +1,44 @@
+{
+    "name": "team_member",
+    "description": "외래키(fk) & 복합 유니크 예제 — 팀-사용자 다대다 중간 테이블",
+    "fields": {
+        "team_seq": {
+            "index": true,
+            "comment": "팀 seq (fk: team.seq)",
+            "required": true
+        },
+        "user_seq": {
+            "index": true,
+            "comment": "사용자 seq (fk: user.seq)",
+            "required": true
+        },
+        "role": {
+            "index": true,
+            "comment": "팀 내 역할",
+            "type": [
+                "owner",
+                "admin",
+                "member",
+                "viewer"
+            ],
+            "default": "member"
+        },
+        "invited_by": {
+            "index": true,
+            "comment": "초대한 사용자 seq (fk: user.seq, nullable)"
+        },
+        "joined_at": {
+            "index": true,
+            "comment": "참가일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "unique": [
+        [
+            "team_seq",
+            "user_seq"
+        ]
+    ],
+    "fk": {
+        "invited_by": "user.seq"
+    }
+}
