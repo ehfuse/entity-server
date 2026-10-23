@@ -1,0 +1,12 @@
+{
+    "_comment": "브라우저 직접 통신용 CSRF 설정 예시. access/refresh 는 HttpOnly 쿠키, CSRF 는 double-submit cookie + header 로 사용합니다.",
+    "enabled": true,
+    "header_name": "X-CSRF-Token",
+    "cookie_name": "_csrf",
+    "cookie_path": "/",
+    "cookie_max_age_sec": 86400,
+    "same_site": "Lax",
+    "issue_on_health": true,
+    "protect_methods": ["POST", "PUT", "PATCH", "DELETE"],
+    "ignore_paths": ["/v1/health", "/v1/alimtalk/webhook/"]
+}
