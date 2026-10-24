@@ -1,0 +1,86 @@
+{
+    "name": "delivery",
+    "description": "push 훅 예제 — 배송 상태 변경 시 고객에게 푸시 알림 전송 (FCM / APNs 공통, 다단계 상태 알림)",
+    "fields": {
+        "order_seq": {
+            "index": true,
+            "comment": "주문 seq",
+            "required": true
+        },
+        "customer_seq": {
+            "index": true,
+            "comment": "고객 user seq",
+            "required": true
+        },
+        "tracking_number": {
+            "index": true,
+            "comment": "운송장 번호",
+            "unique": true
+        },
+        "carrier": {
+            "index": true,
+            "comment": "택배사",
+            "type": [
+                "cj",
+                "lotte",
+                "hanjin",
+                "post",
+                "direct"
+            ],
+            "default": "cj"
+        },
+        "status": {
+            "index": true,
+            "comment": "배송 상태",
+            "type": [
+                "ready",
+                "picked_up",
+                "in_transit",
+                "out_for_delivery",
+                "delivered",
+                "failed"
+            ],
+            "default": "ready"
+        },
+        "estimated_date": {
+            "index": true,
+            "comment": "예상 도착일 (*_date → DATE 자동 추론)"
+        },
+        "delivered_at": {
+            "index": true,
+            "comment": "배송 완료일시 (*_at → DATETIME 자동 추론)"
+        }
+    },
+    "hooks": {
+        "after_insert": [
+            {
+                "comment": "배송 시작 푸시 알림",
+                "type": "push",
+                "target_account_seq": "customer_seq",
+                "title": "배송 시작",
+                "push_body": "주문 #${new.order_seq}의 배송이 시작되었습니다. 운송장: ${new.tracking_number}",
+                "push_data": {
+                    "action": "delivery_started",
+                    "delivery_seq": "${new.seq}",
+                    "tracking_number": "${new.tracking_number}"
+                }
+            }
+        ],
+        "after_update": [
+            {
+                "comment": "배송 상태 변경 시 푸시 알림",
+                "type": "push",
+                "target_account_seq": "customer_seq",
+                "title": "배송 상태 업데이트",
+                "push_body": "배송 상태가 '${new.status}'(으)로 변경되었습니다. 운송장: ${new.tracking_number}",
+                "push_data": {
+                    "action": "delivery_status_changed",
+                    "delivery_seq": "${new.seq}",
+                    "old_status": "${old.status}",
+                    "new_status": "${new.status}",
+                    "tracking_number": "${new.tracking_number}"
+                }
+            }
+        ]
+    }
+}
