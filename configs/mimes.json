@@ -1,0 +1,64 @@
+{
+    "jpg": ["image/jpeg", "image/pjpeg"],
+    "jpeg": ["image/jpeg", "image/pjpeg"],
+    "png": "image/png",
+    "gif": "image/gif",
+    "webp": "image/webp",
+    "bmp": ["image/bmp", "image/x-bmp", "image/x-ms-bmp"],
+    "tif": "image/tiff",
+    "tiff": "image/tiff",
+    "svg": "image/svg+xml",
+    "pdf": [
+        "application/pdf",
+        "application/force-download",
+        "application/x-download"
+    ],
+    "csv": [
+        "text/csv",
+        "application/csv",
+        "application/vnd.ms-excel",
+        "text/plain"
+    ],
+    "xls": [
+        "application/vnd.ms-excel",
+        "application/msexcel",
+        "application/x-msexcel",
+        "application/x-ms-excel",
+        "application/x-excel",
+        "application/vnd.ms-office"
+    ],
+    "xlsx": [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+        "application/zip"
+    ],
+    "xlsm": [
+        "application/vnd.ms-excel.sheet.macroenabled.12",
+        "application/vnd.ms-excel",
+        "application/zip"
+    ],
+    "xlsb": [
+        "application/vnd.ms-excel.sheet.binary.macroenabled.12",
+        "application/vnd.ms-excel",
+        "application/zip"
+    ],
+    "doc": ["application/msword", "application/vnd.ms-office"],
+    "docx": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/zip"
+    ],
+    "ppt": [
+        "application/vnd.ms-powerpoint",
+        "application/powerpoint",
+        "application/vnd.ms-office"
+    ],
+    "pptx": [
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/zip"
+    ],
+    "zip": [
+        "application/zip",
+        "application/x-zip",
+        "application/x-zip-compressed"
+    ]
+}

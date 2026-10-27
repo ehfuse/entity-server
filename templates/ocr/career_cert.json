@@ -1,0 +1,93 @@
+{
+    "doc_type": "career_cert",
+    "label": "경력증명서 (재직증명서)",
+    "preprocess": {
+        "max_slope": 0.03,
+        "y_tolerance": 5,
+        "x_tolerance": 10
+    },
+    "keywords": {
+        "name": ["성명", "이름", "위\\s*사람"],
+        "id_number": ["주민등록번호", "생년월일"],
+        "company": ["회사명", "법인명", "상호", "근무처"],
+        "department": ["부서", "소속"],
+        "position": ["직위", "직급", "직책"],
+        "join_date": ["입사일", "입사일자", "근무시작일"],
+        "leave_date": ["퇴사일", "퇴사일자", "근무종료일"],
+        "issue_date": ["발급일", "발행일", "증명서발급일"],
+        "issuer": ["대표이사", "대표자", "발급기관"]
+    },
+    "fields": {
+        "name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "성명", "direction": "RIGHT" },
+                { "keyword": "이름", "direction": "RIGHT" }
+            ],
+            "refine": "trim"
+        },
+        "id_number": {
+            "mode": "regex_scan",
+            "pattern": "([0-9]{6}-[0-9*]{7})",
+            "refine": "id_num"
+        },
+        "company": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "회사명", "direction": "RIGHT" },
+                { "keyword": "법인명", "direction": "RIGHT" },
+                { "keyword": "상호", "direction": "RIGHT" }
+            ]
+        },
+        "department": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "부서", "direction": "RIGHT" },
+                { "keyword": "소속", "direction": "RIGHT" }
+            ]
+        },
+        "position": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "직위", "direction": "RIGHT" },
+                { "keyword": "직급", "direction": "RIGHT" },
+                { "keyword": "직책", "direction": "RIGHT" }
+            ]
+        },
+        "join_date": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "입사일", "direction": "RIGHT" },
+                { "keyword": "입사일자", "direction": "RIGHT" }
+            ],
+            "refine": "date"
+        },
+        "leave_date": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "퇴사일", "direction": "RIGHT" },
+                { "keyword": "퇴사일자", "direction": "RIGHT" }
+            ],
+            "refine": "date"
+        },
+        "issue_date": {
+            "mode": "regex_scan",
+            "pattern": "발급일[\\s:]*([0-9]{4}[.\\-/][0-9]{1,2}[.\\-/][0-9]{1,2})",
+            "refine": "date"
+        },
+        "issuer": {
+            "mode": "regex_scan",
+            "pattern": "대표(?:이사)?\\s*([가-힣]{2,5})(?:\\s*[\\(印\\)\\s]|$)"
+        }
+    },
+    "required_fields": ["name", "company"],
+    "confidence_weight": {
+        "name": 0.2,
+        "company": 0.2,
+        "join_date": 0.2,
+        "leave_date": 0.15,
+        "position": 0.1,
+        "issue_date": 0.1,
+        "issuer": 0.05
+    }
+}
