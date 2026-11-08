@@ -1,0 +1,12 @@
+{
+    "_comment": "JWT 설정 예시. secret 은 반드시 환경변수로 주입하세요. access_ttl_sec 은 보안 수준에 맞게 조정하세요.",
+    "enabled": true,
+    "secret": "${JWT_SECRET}",
+    "access_ttl_sec": 3600,
+    "refresh_ttl_sec": 1209600,
+    "issuer": "entity-server",
+    "algorithm": "HS256",
+
+    "_comment_algorithm": "지원 알고리즘: HS256 | HS384 | HS512 | RS256 | RS384 | RS512",
+    "_comment_ttl": "access_ttl_sec=3600(1시간), refresh_ttl_sec=1209600(14일) 기본값"
+}

@@ -1,0 +1,15 @@
+{
+    "doc_type": "facility_card",
+    "system_msg": "당신은 OCR 텍스트에서 건축물대장(시설물대장) 정보를 추출하는 AI입니다. 면적은 숫자와 단위(㎡)를 포함하여 반환하세요. 찾을 수 없는 필드는 빈 문자열로 반환하세요.",
+    "user_msg": "아래 OCR 텍스트에서 건축물대장 정보를 추출하여 다음 JSON 스키마에 맞게 응답하세요.\n\n[OCR 텍스트]\n{{ocr_text}}\n\n[출력 스키마]\n{{schema}}\n\nJSON만 출력하세요.",
+    "schema": {
+        "building_name": "string: 건물명 또는 건축물명",
+        "address": "string: 소재지(대지위치)",
+        "building_use": "string: 주용도 (예: 제2종 근린생활시설)",
+        "structure": "string: 구조 (예: 철근콘크리트조)",
+        "area": "string: 연면적 (예: 1234.56㎡)",
+        "floor_count": "string: 층수 (예: 지상 5층 / 지하 1층)",
+        "approval_date": "string: 사용승인일 (YYYY-MM-DD)",
+        "owner": "string: 소유자(건축주)"
+    }
+}

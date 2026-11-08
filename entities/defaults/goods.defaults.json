@@ -1,0 +1,14 @@
+[
+    {
+        "name": "샘플 상품 A",
+        "category": "전자제품",
+        "price": 10000,
+        "stock": 50
+    },
+    {
+        "name": "샘플 상품 B",
+        "category": "가구",
+        "price": 50000,
+        "stock": 20
+    }
+]

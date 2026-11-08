@@ -1,0 +1,116 @@
+{
+    "doc_type": "namecard",
+    "label": "명함",
+    "preprocess": {
+        "max_slope": 0.05,
+        "y_tolerance": 5,
+        "x_tolerance": 10
+    },
+    "keywords": {
+        "name": ["성명", "이름"],
+        "company": ["주식회사", "(주)", "㈜", "Inc.", "Corp.", "Co.,", "Ltd."],
+        "department": ["부서", "팀", "사업부", "본부", "센터", "실", "TF"],
+        "title": [
+            "대표",
+            "이사",
+            "부장",
+            "차장",
+            "과장",
+            "팀장",
+            "실장",
+            "본부장",
+            "사원",
+            "대리",
+            "수석",
+            "책임",
+            "선임",
+            "CEO",
+            "CTO",
+            "CFO",
+            "COO",
+            "Director",
+            "Manager"
+        ],
+        "address": ["주소", "address", "addr."],
+        "phone": ["Tel", "TEL", "전화", "Mobile", "HP", "직통", "Fax", "FAX"],
+        "email": ["Email", "E-mail", "이메일", "e-mail"],
+        "website": ["www.", "http", "https"]
+    },
+    "fields": {
+        "name": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "성명", "direction": "RIGHT" },
+                { "keyword": "이름", "direction": "RIGHT" }
+            ]
+        },
+        "company": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "주식회사", "direction": "RIGHT" },
+                { "keyword": "주식회사", "direction": "LEFT" },
+                { "keyword": "(주)", "direction": "RIGHT" },
+                { "keyword": "㈜", "direction": "RIGHT" }
+            ]
+        },
+        "department": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "부서", "direction": "RIGHT" },
+                { "keyword": "팀", "direction": "LEFT" },
+                { "keyword": "사업부", "direction": "LEFT" },
+                { "keyword": "본부", "direction": "LEFT" },
+                { "keyword": "센터", "direction": "LEFT" }
+            ]
+        },
+        "title": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "대표이사", "direction": "LEFT" },
+                { "keyword": "대표이사", "direction": "RIGHT" },
+                { "keyword": "이사", "direction": "LEFT" },
+                { "keyword": "부장", "direction": "LEFT" },
+                { "keyword": "차장", "direction": "LEFT" },
+                { "keyword": "과장", "direction": "LEFT" },
+                { "keyword": "팀장", "direction": "LEFT" },
+                { "keyword": "본부장", "direction": "LEFT" },
+                { "keyword": "실장", "direction": "LEFT" },
+                { "keyword": "수석", "direction": "LEFT" },
+                { "keyword": "Director", "direction": "LEFT" },
+                { "keyword": "Manager", "direction": "LEFT" },
+                { "keyword": "CEO", "direction": "LEFT" }
+            ]
+        },
+        "phone": {
+            "mode": "regex_scan",
+            "pattern": "(?:Tel|TEL|전화|Mobile|HP|직통)[\\s.:]*([0-9][0-9\\-\\s]+[0-9])",
+            "multi": true,
+            "refine": "phone"
+        },
+        "email": {
+            "mode": "regex_scan",
+            "pattern": "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}",
+            "multi": true
+        },
+        "address": {
+            "mode": "anchor",
+            "criteria": [
+                { "keyword": "주소", "direction": "RIGHT" },
+                { "keyword": "주소", "direction": "DOWN" },
+                { "keyword": "address", "direction": "RIGHT" }
+            ]
+        },
+        "website": {
+            "mode": "regex_scan",
+            "pattern": "(?:https?://|www\\.)[a-zA-Z0-9.\\-/]+"
+        }
+    },
+    "required_fields": [],
+    "confidence_weight": {
+        "name": 0.3,
+        "company": 0.3,
+        "phone": 0.2,
+        "email": 0.1,
+        "title": 0.1
+    }
+}
