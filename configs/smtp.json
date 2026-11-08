@@ -1,0 +1,43 @@
+{
+    "enabled": false,
+    "default": "main",
+    "workers": 2,
+    "queue_size": 200,
+    "dispatch_interval_sec": 5,
+    "max_retries": 3,
+
+    "providers": {
+        "main": {
+            "host": "smtp.gmail.com",
+            "port": 587,
+            "username": "${SMTP_USERNAME}",
+            "password": "${SMTP_PASSWORD}",
+            "from": "noreply@example.com",
+            "from_name": "My Service",
+            "encryption": "starttls",
+            "auth": "plain",
+            "timeout_sec": 30,
+            "max_connections": 5
+        },
+        "transactional": {
+            "host": "smtp.sendgrid.net",
+            "port": 465,
+            "username": "apikey",
+            "password": "${SENDGRID_API_KEY}",
+            "from": "alerts@example.com",
+            "from_name": "My Service Alerts",
+            "encryption": "ssl",
+            "auth": "plain"
+        }
+    },
+
+    "templates": {
+        "dir": "./templates/email",
+        "default_layout": "layout.html"
+    },
+
+    "rate_limit": {
+        "per_minute": 0,
+        "per_hour": 0
+    }
+}

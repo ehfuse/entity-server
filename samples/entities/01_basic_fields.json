@@ -1,0 +1,52 @@
+{
+    "name": "contact",
+    "description": "기본 필드 타입 예제 — 인덱스 필드 자동 추론 패턴 모음",
+    "fields": {
+        "name": {
+            "index": true,
+            "comment": "이름 (*_name → VARCHAR(100) 자동 추론)"
+        },
+        "email": {
+            "index": true,
+            "comment": "이메일 (*email* → VARCHAR(255) 자동 추론)",
+            "type": "email"
+        },
+        "phone": {
+            "index": true,
+            "comment": "전화번호 (*phone* → VARCHAR(50) 자동 추론)"
+        },
+        "birth_date": {
+            "index": true,
+            "comment": "생년월일 (*_date → DATE 자동 추론)"
+        },
+        "joined_at": {
+            "index": true,
+            "comment": "가입일시 (*_at → DATETIME 자동 추론)"
+        },
+        "visit_count": {
+            "index": true,
+            "comment": "방문 횟수 (*_count → INT 자동 추론)"
+        },
+        "total_amount": {
+            "index": true,
+            "comment": "총 금액 (*_amount → DECIMAL(15,2) 자동 추론)"
+        },
+        "is_verified": {
+            "index": true,
+            "comment": "인증 여부 (is_* → TINYINT(1) 자동 추론)"
+        },
+        "user_seq": {
+            "index": true,
+            "comment": "연결된 사용자 seq (*_seq → BIGINT UNSIGNED 자동 추론)"
+        },
+        "status": {
+            "index": true,
+            "comment": "상태 (enum 배열로 허용값 제한)",
+            "type": [
+                "active",
+                "inactive"
+            ],
+            "default": "active"
+        }
+    }
+}

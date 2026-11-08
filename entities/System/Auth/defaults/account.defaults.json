@@ -1,0 +1,50 @@
+[
+    {
+        "email": "admin1@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "admin12345",
+        "rbac_role": "admin",
+        "status": "active"
+    },
+    {
+        "email": "admin2@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "admin12345",
+        "rbac_role": "admin",
+        "status": "active"
+    },
+    {
+        "email": "admin3@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "admin12345",
+        "rbac_role": "admin",
+        "status": "active"
+    },
+    {
+        "email": "test1@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "test12345",
+        "rbac_role": "user",
+        "status": "active"
+    },
+    {
+        "email": "test2@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "test12345",
+        "rbac_role": "user",
+        "status": "active"
+    },
+    {
+        "email": "test3@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "test12345",
+        "rbac_role": "user",
+        "status": "active"
+    },
+    {
+        "email": "test4@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "test12345",
+        "rbac_role": "user",
+        "status": "active"
+    },
+    {
+        "email": "test5@${DEFAULT_EMAIL_DOMAIN}",
+        "passwd": "test12345",
+        "rbac_role": "user",
+        "status": "active"
+    }
+]

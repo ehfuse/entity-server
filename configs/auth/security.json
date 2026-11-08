@@ -1,0 +1,23 @@
+{
+    "enable_hmac": true,
+    "enable_rbac": true,
+    "enable_data_encryption": true,
+    "enable_packet_encryption": false,
+    "timestamp_skew_sec": 300,
+    "nonce_ttl_sec": 300,
+    "auth_fail_limit_per_min": 120,
+    "auth_block_sec": 60,
+    "nonce_store": {
+        "driver": "redis",
+        "memcache_servers": ["localhost:11211"],
+        "redis_addr": "localhost:6379",
+        "redis_password": "",
+        "redis_db": 0,
+        "redis_prefix": "nonce:"
+    },
+    "environments": {
+        "production": {
+            "enable_packet_encryption": true
+        }
+    }
+}
